@@ -5,10 +5,7 @@ import java.util.List;
 /**
  * Created by massimo on 22/12/17.
  */
-public class Sum implements Operator {
-
-    private final int size;
-    private final int slide;
+public class Sum extends Operator {
 
     public Sum(int size, int slide) {
         this.size = size;

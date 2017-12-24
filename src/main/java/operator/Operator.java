@@ -5,10 +5,12 @@ import java.util.List;
 /**
  * Created by massimo on 22/12/17.
  */
-public interface Operator {
+public abstract class Operator {
+    protected int size;
+    protected int slide;
 
-    double execute(List<Double> inputData);
-    int getSize();
-    int getSlide();
+    abstract double execute(List<Double> inputData);
+    abstract int getSize();
+    abstract int getSlide();
 
 }
