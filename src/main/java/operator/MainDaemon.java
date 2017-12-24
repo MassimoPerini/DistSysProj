@@ -24,7 +24,7 @@ import java.net.URL;
 public class MainDaemon {
 
     public static void main(String [] args) throws URISyntaxException, IOException {
-
+        Debug.setLevel(3);
         Debug.printVerbose("I'm the daemon, I should contact the supervisor");
             //Process pro = Runtime.getRuntime().exec("java ProcessOperator");
 
@@ -36,7 +36,7 @@ public class MainDaemon {
         Gson gson  = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
 
         String outJson = gson.toJson(new Sum(3,3), Operator.class);
-        System.out.println(outJson);
+        Debug.printVerbose(outJson);
 
         /*
             socketOut.println(res);
