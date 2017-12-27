@@ -41,14 +41,15 @@ public class MainDaemon {
         /*
             socketOut.println(res);
             socketOut.flush();
-         */
+        */
 
         Debug.printVerbose("Package class: "+packageClass+"\nfolderStart: "+folderUri.toString());
 
         //ProcessBuilder pb = new ProcessBuilder("java", packageClass, outJson);
 
         String unixClassPath = "target/*:target/dependency/*";
-        String windClassPath = "target\\*;target\\dependency\\*";
+        //String windClassPath = "target\\*;target\\dependency\\*";
+        String windClassPath = "target/classes;target\\dependency\\*;target\\*";
         String osClassPath = "";
 
         if (File.separatorChar == '/')

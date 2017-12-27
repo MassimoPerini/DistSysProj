@@ -12,6 +12,7 @@ public class ProcessOperator {
 
     public static void main(String [] args)
     {
+        Debug.setLevel(3);
         Debug.printVerbose("Processo lanciato!!! " + args[0]);
 
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(Operator.class, "class_type").registerSubtype(Sum.class);

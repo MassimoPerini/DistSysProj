@@ -7,7 +7,7 @@ import utils.Debug;
  */
 public class MainSupervisor {
     public static void main(String[] args) {
-
+        Debug.setLevel(3);
         Debug.printVerbose("Main Supervisor Lanciato");
     }
 }
