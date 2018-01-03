@@ -5,8 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import utils.Debug;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -22,21 +25,38 @@ import java.net.URL;
  *
  */
 public class MainDaemon {
-
+    //private static String SUPERVISOR_ADDRESS = System.getProperty("myapplication.ip");
+    private static String SUPERVISOR_ADDRESS = "127.0.0.1";
+    private static int SOCKET_PORT = 3040;
     public static void main(String [] args) throws URISyntaxException, IOException {
-        Debug.setLevel(3);
+        Debug.setLevel(Debug.LEVEL_VERBOSE);
         Debug.printVerbose("I'm the daemon, I should contact the supervisor");
             //Process pro = Runtime.getRuntime().exec("java ProcessOperator");
 
         URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
         String packageClass = ProcessOperator.class.getCanonicalName();
 
+        //todo modificare connessione col supervisor
+        Socket connection = new Socket(SUPERVISOR_ADDRESS, SOCKET_PORT);
+        try {
+            BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            Debug.printVerbose("Supervisor says: " + input.readLine());
+        }
+        catch (IOException e)
+        {
+            Debug.printError(e);
+            Debug.printError("Error connecting the daemon to the supervisor, please restart. Error message: " + e.getMessage());
+        }
+        finally {
+            connection.close();
+        }
         //Questo è quello che dovrebbe arrivare dal supervisor
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(Operator.class, "class_type").registerSubtype(Sum.class);
         Gson gson  = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
 
         String outJson = gson.toJson(new Sum(3,3), Operator.class);
         Debug.printVerbose(outJson);
+
 
         /*
             socketOut.println(res);
