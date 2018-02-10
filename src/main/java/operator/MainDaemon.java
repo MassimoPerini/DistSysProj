@@ -3,9 +3,11 @@ package operator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import operator.communication.OperatorSocket;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -15,7 +17,7 @@ import java.util.concurrent.Executors;
 
 /**
  * Created by massimo on 21/12/2017.
- *
+ * NON PIU' VERO
  * ATTENZIONE: se si compila con maven, prima di eseguire lanciare mvn dependency:copy-dependencies
  * Che copia i .jar di dipendenze in una sottocartella
  * In questo modo quando creo il nuovo processo carico anche le dipendenze nel classpath
@@ -37,6 +39,10 @@ public class MainDaemon {
 
         URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
         String packageClass = ProcessOperator.class.getCanonicalName();
+
+
+        OperatorSocket operatorSocket = new OperatorSocket(new Socket("127.0.0.1", 1337));
+
 
         //Questo è quello che dovrebbe arrivare dal supervisor
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(Operator.class, "class_type").registerSubtype(Sum.class);
