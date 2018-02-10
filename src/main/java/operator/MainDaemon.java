@@ -3,16 +3,15 @@ package operator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import utils.Debug;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by massimo on 21/12/2017.
@@ -25,51 +24,38 @@ import java.net.URL;
  *
  */
 public class MainDaemon {
-    //private static String SUPERVISOR_ADDRESS = System.getProperty("myapplication.ip");
-    private static String SUPERVISOR_ADDRESS = "127.0.0.1";
-    private static int SOCKET_PORT = 3040;
+
     public static void main(String [] args) throws URISyntaxException, IOException {
-        Debug.setLevel(Debug.LEVEL_VERBOSE);
-        Debug.printVerbose("I'm the daemon, I should contact the supervisor");
+
+        String jarFile = "";
+        if (args.length > 0) {
+            jarFile = args[0];
+        }
+
+        System.out.println("I'm the daemon, I should contact the supervisor");
             //Process pro = Runtime.getRuntime().exec("java ProcessOperator");
 
         URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
         String packageClass = ProcessOperator.class.getCanonicalName();
 
-        //todo modificare connessione col supervisor
-        Socket connection = new Socket(SUPERVISOR_ADDRESS, SOCKET_PORT);
-        try {
-            BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            Debug.printVerbose("Supervisor says: " + input.readLine());
-        }
-        catch (IOException e)
-        {
-            Debug.printError(e);
-            Debug.printError("Error connecting the daemon to the supervisor, please restart. Error message: " + e.getMessage());
-        }
-        finally {
-            connection.close();
-        }
         //Questo è quello che dovrebbe arrivare dal supervisor
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(Operator.class, "class_type").registerSubtype(Sum.class);
         Gson gson  = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
 
         String outJson = gson.toJson(new Sum(3,3), Operator.class);
-        Debug.printVerbose(outJson);
-
+        System.out.println(outJson);
 
         /*
             socketOut.println(res);
             socketOut.flush();
-        */
+         */
 
-        Debug.printVerbose("Package class: "+packageClass+"\nfolderStart: "+folderUri.toString());
+        System.out.println("Package class: "+packageClass+"\nfolderStart: "+folderUri.toString());
 
         //ProcessBuilder pb = new ProcessBuilder("java", packageClass, outJson);
 
         String unixClassPath = "target/*:target/dependency/*";
-        //String windClassPath = "target\\*;target\\dependency\\*";
-        String windClassPath = "target/classes;target\\dependency\\*;target\\*";
+        String windClassPath = "target\\*;target\\dependency\\*";
         String osClassPath = "";
 
         if (File.separatorChar == '/')
@@ -78,16 +64,30 @@ public class MainDaemon {
         }
         else
         {
-            osClassPath = windClassPath;
+            osClassPath=windClassPath;
         }
 
-        ProcessBuilder pb = new ProcessBuilder("java", "-classpath",osClassPath,packageClass, outJson);
+        ProcessBuilder pb;
+        if (jarFile.equals(""))
+        {
+            System.out.println("-Dexec.mainClass=\"it.polimi.distsys."+packageClass+"\"");
+            pb = new ProcessBuilder("mvn", "exec:java", "-Dexec.mainClass="+packageClass, "-Dexec.args=\""+outJson+"\"");
+        }
+        else{
+            pb = new ProcessBuilder("java", "-cp", jarFile, packageClass, outJson);
+        }
+
 
         pb.directory(new File("."));
 
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-        pb.start();
 
+        Process process = pb.start();
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
