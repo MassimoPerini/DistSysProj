@@ -9,7 +9,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Created by massimo on 10/02/18.
+ * Created by massimo 10/02/2018
+ * This class rapresents the node of the network
  */
 public class NodeSocket {
 

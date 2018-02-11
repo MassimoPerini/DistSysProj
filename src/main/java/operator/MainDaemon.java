@@ -14,6 +14,7 @@ import java.net.URL;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import utils.Debug;
 
 /**
  * Created by massimo on 21/12/2017.
@@ -28,13 +29,13 @@ import java.util.concurrent.Executors;
 public class MainDaemon {
 
     public static void main(String [] args) throws URISyntaxException, IOException {
-
+        Debug.setLevel(3);
         String jarFile = "";
         if (args.length > 0) {
             jarFile = args[0];
         }
 
-        System.out.println("I'm the daemon, I should contact the supervisor");
+        Debug.printVerbose("I'm the daemon, I should contact the supervisor");
             //Process pro = Runtime.getRuntime().exec("java ProcessOperator");
 
         URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
@@ -49,14 +50,14 @@ public class MainDaemon {
         Gson gson  = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
 
         String outJson = gson.toJson(new Sum(3,3), Operator.class);
-        System.out.println(outJson);
+        Debug.printVerbose(outJson);
 
         /*
             socketOut.println(res);
             socketOut.flush();
          */
 
-        System.out.println("Package class: "+packageClass+"\nfolderStart: "+folderUri.toString());
+        Debug.printVerbose("Package class: "+packageClass+"\nfolderStart: "+folderUri.toString());
 
         //ProcessBuilder pb = new ProcessBuilder("java", packageClass, outJson);
 
@@ -70,14 +71,15 @@ public class MainDaemon {
         }
         else
         {
-            osClassPath=windClassPath;
+            osClassPath= windClassPath;
         }
 
         ProcessBuilder pb;
         if (jarFile.equals(""))
         {
-            System.out.println("-Dexec.mainClass=\"it.polimi.distsys."+packageClass+"\"");
+            Debug.printVerbose("-Dexec.mainClass=\"it.polimi.distsys."+packageClass+"\"");
             pb = new ProcessBuilder("mvn", "exec:java", "-Dexec.mainClass="+packageClass, "-Dexec.args=\""+outJson+"\"");
+            //todo check this: mvn exec:java -Dexec.mainClass=operator.ProcessOperator -Dexec.args="{"class_type":"Sum","size":3,"slide":3}"
         }
         else{
             pb = new ProcessBuilder("java", "-cp", jarFile, packageClass, outJson);
