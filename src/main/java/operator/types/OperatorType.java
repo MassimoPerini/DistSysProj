@@ -1,13 +1,14 @@
-package operator;
+package operator.types;
 
 import java.util.List;
 
 /**
- * Created by massimo on 22/12/17.
+ * Created by massimo on 11/02/18.
  */
-public abstract class Operator {
-    protected int size;
-    protected int slide;
+public abstract class OperatorType {
+
+    int size;
+    int slide;
 
     abstract double execute(List<Double> inputData);
     abstract int getSize();

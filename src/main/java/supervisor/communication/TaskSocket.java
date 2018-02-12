@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import supervisor.communication.message.MessageSupervisor;
 import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
+import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
 
 import java.io.*;
@@ -36,7 +37,7 @@ public class TaskSocket{
                 ;
         readGson=new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory2).create();
         RuntimeTypeAdapterFactory typeAdapterFactory = RuntimeTypeAdapterFactory.of(MessageSupervisor.class, "type")
-                .registerSubtype(MessageSupervisor.class)
+                .registerSubtype(OperatorDeployment.class)
                 ;
         writeGson = new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory).create();  //setPrettyPrinting
         executorService = Executors.newCachedThreadPool();
@@ -59,14 +60,23 @@ public class TaskSocket{
         } catch (IOException e) {
             Debug.printDebug(e);
         }
+        catch (Exception e)
+        {
+            Debug.printDebug(e);
+        }
     }
 
     void send(@NotNull MessageSupervisor messageServer){
         executorService.submit (() -> {
-            String res = writeGson.toJson(messageServer, MessageSupervisor.class);
-            Debug.printVerbose("SERVER: SENDING " + res+" TO "+socket.getLocalAddress().getHostAddress()+" SOCKET");
-            socketOut.println(res);
-            socketOut.flush();
+            try {
+                String res = writeGson.toJson(messageServer, MessageSupervisor.class);
+                Debug.printVerbose("SERVER: SENDING " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
+                socketOut.println(res);
+                socketOut.flush();
+            }catch (Exception e)
+            {
+                Debug.printDebug(e);
+            }
         });
     }
 

@@ -5,11 +5,10 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import operator.types.Sum;
 import org.junit.Test;
 
 import operator.Node;
-import operator.Sum;
-import supervisor.Position;
 
 public class NodeTest {
 

@@ -4,16 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.communication.OperatorSocket;
+import operator.types.OperatorType;
+import operator.types.Sum;
+import utils.Debug;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by massimo on 21/12/2017.
@@ -27,7 +26,11 @@ import java.util.concurrent.Executors;
  */
 public class MainDaemon {
 
+    private static final int PORT = 1337;
+
     public static void main(String [] args) throws URISyntaxException, IOException {
+
+        Debug.setLevel(Debug.LEVEL_VERBOSE);
 
         String jarFile = "";
         if (args.length > 0) {
@@ -40,60 +43,8 @@ public class MainDaemon {
         URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
         String packageClass = ProcessOperator.class.getCanonicalName();
 
+        OperatorSocket operatorSocket = new OperatorSocket(new Socket("127.0.0.1", PORT));
+        operatorSocket.start();
 
-        OperatorSocket operatorSocket = new OperatorSocket(new Socket("127.0.0.1", 1337));
-
-
-        //Questo è quello che dovrebbe arrivare dal supervisor
-        RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(Operator.class, "class_type").registerSubtype(Sum.class);
-        Gson gson  = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
-
-        String outJson = gson.toJson(new Sum(3,3), Operator.class);
-        System.out.println(outJson);
-
-        /*
-            socketOut.println(res);
-            socketOut.flush();
-         */
-
-        System.out.println("Package class: "+packageClass+"\nfolderStart: "+folderUri.toString());
-
-        //ProcessBuilder pb = new ProcessBuilder("java", packageClass, outJson);
-
-        String unixClassPath = "target/*:target/dependency/*";
-        String windClassPath = "target\\*;target\\dependency\\*";
-        String osClassPath = "";
-
-        if (File.separatorChar == '/')
-        {
-            osClassPath = unixClassPath;
-        }
-        else
-        {
-            osClassPath=windClassPath;
-        }
-
-        ProcessBuilder pb;
-        if (jarFile.equals(""))
-        {
-            System.out.println("-Dexec.mainClass=\"it.polimi.distsys."+packageClass+"\"");
-            pb = new ProcessBuilder("mvn", "exec:java", "-Dexec.mainClass="+packageClass, "-Dexec.args=\""+outJson+"\"");
-        }
-        else{
-            pb = new ProcessBuilder("java", "-cp", jarFile, packageClass, outJson);
-        }
-
-
-        pb.directory(new File("."));
-
-        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        pb.redirectError(ProcessBuilder.Redirect.INHERIT);
-
-        Process process = pb.start();
-        try {
-            process.waitFor();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }

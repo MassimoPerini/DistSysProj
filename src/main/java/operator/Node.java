@@ -3,6 +3,7 @@ package operator;
 import java.util.ArrayList;
 import java.util.List;
 
+import operator.types.OperatorType;
 import supervisor.Position;
 
 /**
@@ -12,9 +13,9 @@ public class Node {
 	private Position ownPosition;
 	private List<Position> forwardStar;
 	private List<Position> backwardStar;
-	private Operator operator;
+	private OperatorType operator;
 	
-	public Node(Operator operator,Position position)
+	public Node(OperatorType operator,Position position)
 	{
 		this.operator=operator;
 		this.ownPosition=position;

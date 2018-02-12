@@ -1,7 +1,9 @@
 package supervisor.communication;
 
+import operator.types.Sum;
 import org.jetbrains.annotations.NotNull;
 import supervisor.communication.message.HeartbeatRequest;
+import supervisor.communication.message.OperatorDeployment;
 
 import java.net.Socket;
 import java.util.*;
@@ -18,7 +20,7 @@ public class NodeSocket {
     private final ExecutorService executorService;
     private static final int DELAY = 5000;
 
-    public NodeSocket(@NotNull TaskSocket daemonSocket)
+    NodeSocket(@NotNull TaskSocket daemonSocket)
     {
         this.daemonSocket = daemonSocket;
         this.operatorsSocket = Collections.synchronizedList(new ArrayList<TaskSocket>());
@@ -41,7 +43,7 @@ public class NodeSocket {
                 @Override
                 public void run()
                 {
-                    //TODO at the end of the timer...
+                    System.out.println("TIMER!!!!!!!!");
                 }
             }, DELAY);
 
@@ -61,5 +63,11 @@ public class NodeSocket {
             operatorsSocket.get(i).send(new HeartbeatRequest(i+1));
         }
     }
+
+    void deployOperator(OperatorDeployment operatorDeployment)
+    {
+        daemonSocket.send(operatorDeployment);
+    }
+
 
 }

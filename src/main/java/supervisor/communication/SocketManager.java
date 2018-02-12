@@ -1,5 +1,8 @@
 package supervisor.communication;
 
+import operator.types.Sum;
+import supervisor.communication.message.OperatorDeployment;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +22,7 @@ public class SocketManager {
         nodeSocketList = Collections.synchronizedList(new ArrayList<>());
     }
 
-    void addSocket(NodeSocket nodeSocket)
+    synchronized void addSocket(NodeSocket nodeSocket)
     {
         //TODO avoid equal!!!
         this.nodeSocketList.add(nodeSocket);
@@ -37,6 +40,12 @@ public class SocketManager {
             }
         });
     }
+
+    public void deployNewOperator(int nodeToDeploy, OperatorDeployment operatorDeployment)
+    {
+        nodeSocketList.get(nodeToDeploy).deployOperator(operatorDeployment);
+    }
+
 
 
 }

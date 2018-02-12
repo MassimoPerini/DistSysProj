@@ -1,13 +1,15 @@
-package operator;
+package operator.types;
 
 import java.util.List;
 
 /**
- * Created by massimo on 22/12/17.
+ * Created by massimo on 11/02/18.
  */
-public class Sum extends Operator {
+public class Sum extends OperatorType {
+
 
     public Sum(int size, int slide) {
+        super();
         this.size = size;
         this.slide = slide;
     }

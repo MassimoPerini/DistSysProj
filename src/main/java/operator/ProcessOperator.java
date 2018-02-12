@@ -3,6 +3,8 @@ package operator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import operator.types.OperatorType;
+import operator.types.Sum;
 import utils.Debug;
 
 /**
@@ -15,9 +17,9 @@ public class ProcessOperator {
         Debug.setLevel(Debug.LEVEL_VERBOSE);
         Debug.printVerbose("Processo lanciato!!! " + args[0]);
 
-        RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(Operator.class, "class_type").registerSubtype(Sum.class);
+        RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(OperatorType.class, "type").registerSubtype(Sum.class);
         Gson gson  = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
-        Operator o = gson.fromJson(args[0], Operator.class);
+        OperatorType o = gson.fromJson(args[0], OperatorType.class);
         Debug.printVerbose("Operazione assegnata: "+o.toString());
 
     }

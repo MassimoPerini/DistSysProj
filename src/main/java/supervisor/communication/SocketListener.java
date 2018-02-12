@@ -1,5 +1,7 @@
 package supervisor.communication;
 
+import operator.types.Sum;
+import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
 
 import java.net.ServerSocket;
@@ -26,7 +28,6 @@ public class SocketListener{
 
     public void run() {
         try {
-            ExecutorService executor = Executors.newCachedThreadPool();
             //creats the socket
             ServerSocket serverSocket = new ServerSocket(PORT);
             System.out.println("SERVER SOCKET READY ON PORT" + PORT);
@@ -39,6 +40,12 @@ public class SocketListener{
                 TaskSocket taskSocket = new TaskSocket(inputSocket);
                 NodeSocket nodeSocket = new NodeSocket(taskSocket);
                 this.socketManager.addSocket(nodeSocket);
+
+                //TODO SPOSTARE QUESTA PARTE
+                OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2),"");//TODO trovare qualche metodo migliore di passare il JAR
+                this.socketManager.deployNewOperator(0, operatorDeployment);
+
+
             }
         }
         catch (Exception e)

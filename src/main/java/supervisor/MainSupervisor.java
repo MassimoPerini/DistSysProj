@@ -1,7 +1,9 @@
 package supervisor;
 
+import operator.types.Sum;
 import supervisor.communication.SocketListener;
 import supervisor.communication.SocketManager;
+import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
 
 import java.io.IOException;
