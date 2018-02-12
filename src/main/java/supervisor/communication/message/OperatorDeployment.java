@@ -40,14 +40,14 @@ public class OperatorDeployment implements MessageSupervisor {
         try {
             URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
             String packageClass = ProcessOperator.class.getCanonicalName();
-            System.out.println(outJson);
+            Debug.printVerbose(outJson);
 
         /*
             socketOut.println(res);
             socketOut.flush();
          */
 
-            System.out.println("Package class: " + packageClass + "\nfolderStart: " + folderUri.toString());
+            Debug.printVerbose("Package class: " + packageClass + "\nfolderStart: " + folderUri.toString());
 
             String unixClassPath = "target/*:target/dependency/*";
             String windClassPath = "target\\*;target\\dependency\\*";
@@ -61,7 +61,7 @@ public class OperatorDeployment implements MessageSupervisor {
 
             ProcessBuilder pb;
             if (jarFile.equals("")) {
-                System.out.println("-Dexec.mainClass=\"it.polimi.distsys." + packageClass + "\"");
+                Debug.printVerbose("-Dexec.mainClass=\"it.polimi.distsys." + packageClass + "\"");
                 pb = new ProcessBuilder("mvn", "exec:java", "-Dexec.mainClass=" + packageClass, "-Dexec.args=\"" + outJson + "\"");
             } else {
                 pb = new ProcessBuilder("java", "-cp", jarFile, packageClass, outJson);
@@ -82,7 +82,7 @@ public class OperatorDeployment implements MessageSupervisor {
         }
         catch (Exception e)
         {
-            Debug.printVerbose(e);
+            Debug.printError(e);
         }
 
     }

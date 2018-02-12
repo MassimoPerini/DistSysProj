@@ -41,11 +41,13 @@ public class SocketManager {
         });
     }
 
+    /**
+     * This method deploys a new operator.
+     * @param nodeToDeploy
+     * @param operatorDeployment
+     */
     public void deployNewOperator(int nodeToDeploy, OperatorDeployment operatorDeployment)
     {
         nodeSocketList.get(nodeToDeploy).deployOperator(operatorDeployment);
     }
-
-
-
 }

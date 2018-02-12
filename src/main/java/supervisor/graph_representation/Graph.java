@@ -60,7 +60,7 @@ public class Graph<T> {
 	
 	/**
 	 * Returns the id of any node without incoming edges, or null if not existing
-	 * @return
+	 * @return id of any node without incoming edges
 	 */
 	public Integer idOfNodeWithoutIncomingEdges()
 	{
@@ -74,7 +74,7 @@ public class Graph<T> {
 	
 	/**
 	 * Returns a topological sort of the vertices or null if cyclic
-	 * @return
+	 * @return list of vertex ordered topologically
 	 */
 	public List<Vertex<T>> topologicalSort()
 	{

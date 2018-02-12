@@ -58,11 +58,11 @@ public class TaskSocket{
                 messageSupervisor.execute();
             //}
         } catch (IOException e) {
-            Debug.printDebug(e);
+            Debug.printError(e);
         }
         catch (Exception e)
         {
-            Debug.printDebug(e);
+            Debug.printError(e);
         }
     }
 
@@ -75,7 +75,7 @@ public class TaskSocket{
                 socketOut.flush();
             }catch (Exception e)
             {
-                Debug.printDebug(e);
+                Debug.printError(e);
             }
         });
     }
