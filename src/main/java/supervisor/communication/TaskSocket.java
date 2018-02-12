@@ -88,7 +88,7 @@ public class TaskSocket{
         }
         catch (IOException e)
         {
-            System.out.print("IOException on closing...");
+            Debug.printError("IOException on closing...");
         }
     }
 
