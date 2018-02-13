@@ -16,12 +16,20 @@ import java.net.URI;
 
 /**
  * Created by massimo on 11/02/18.
+ *
+ *  This class represents the message that the supervisor sents to the Daemon when a new operator needs to be deployed on that node
  */
 public class OperatorDeployment implements MessageSupervisor {
 
     //private final OperatorType operatorType;
     private final String jarFile;
     private final String outJson;
+
+    /***
+     *
+     * @param operatorType The operator that needs to be deployed
+     * @param jarFile TEMPORARY PARAMETER, with "" it will run from IDE the new process, with the path of the jar will run the new class from the jar file
+     */
 
     public OperatorDeployment(@NotNull OperatorType operatorType, String jarFile)
     {
@@ -34,7 +42,9 @@ public class OperatorDeployment implements MessageSupervisor {
 
     }
 
-
+    /***
+     * Invoked by the Daemon, will deploy a new operator (starting a new process)
+     */
     @Override
     public void execute() {
         try {

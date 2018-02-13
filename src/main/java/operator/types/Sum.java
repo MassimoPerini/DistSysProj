@@ -4,10 +4,17 @@ import java.util.List;
 
 /**
  * Created by massimo on 11/02/18.
+ *
+ * This class represents the "Sum" operator
+ *
  */
 public class Sum extends OperatorType {
 
-
+    /***
+     *
+     * @param size The number of items that will be summed
+     * @param slide The slide of the sum
+     */
     public Sum(int size, int slide) {
         super();
         this.size = size;
