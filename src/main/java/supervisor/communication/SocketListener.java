@@ -30,7 +30,7 @@ public class SocketListener{
         try {
             //creats the socket
             ServerSocket serverSocket = new ServerSocket(PORT);
-            System.out.println("SERVER SOCKET READY ON PORT" + PORT);
+            Debug.printVerbose("SERVER SOCKET READY ON PORT" + PORT);
 
             while (true) {
                 //Waits for a new client to connect
@@ -45,12 +45,11 @@ public class SocketListener{
                 OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2),"");//TODO trovare qualche metodo migliore di passare il JAR
                 this.socketManager.deployNewOperator(0, operatorDeployment);
 
-
             }
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            Debug.printError(e);
         }
     }
 

@@ -13,8 +13,10 @@ public class Node {
 	private Position ownPosition;
 	private List<Position> forwardStar;
 	private List<Position> backwardStar;
+	//todo: make class consistent to NodeSocket
+	//adding List of operators + 1 MainDaemon
 	private OperatorType operator;
-	
+
 	public Node(OperatorType operator,Position position)
 	{
 		this.operator=operator;

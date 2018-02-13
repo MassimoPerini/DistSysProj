@@ -24,10 +24,18 @@ public class SocketManager {
 
     synchronized void addSocket(NodeSocket nodeSocket)
     {
-        //TODO avoid equal!!!
+        //todo check consistency with equals
+        for (NodeSocket socket : nodeSocketList) {
+            if(nodeSocket.equals(socket)){
+                throw new IllegalArgumentException();
+            }
+        }
         this.nodeSocketList.add(nodeSocket);
     }
 
+    /**
+     * this method is called by the supervisor in order to start the heartbeat
+     */
     public void startHeartBeat()
     {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -43,8 +51,10 @@ public class SocketManager {
 
     /**
      * This method deploys a new operator.
-     * @param nodeToDeploy
-     * @param operatorDeployment
+     * It can be reused to deploy more times different operators in the same node
+     * @param nodeToDeploy this is related to fact 1.1. For the moment we handle the list of all nodes
+     *                     controlled by the supervisor using a topological sort.
+     * @param operatorDeployment type of opeation to deploy on the node
      */
     public void deployNewOperator(int nodeToDeploy, OperatorDeployment operatorDeployment)
     {

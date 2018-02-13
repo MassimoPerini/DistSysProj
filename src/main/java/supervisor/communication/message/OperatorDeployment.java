@@ -64,15 +64,17 @@ public class OperatorDeployment implements MessageSupervisor {
             String osClassPath = "";
 
             if (File.separatorChar == '/') {
-                osClassPath = unixClassPath;
+                osClassPath = "mvn";
             } else {
-                osClassPath = windClassPath;
+                osClassPath = "mvn.cmd";
             }
 
             ProcessBuilder pb;
             if (jarFile.equals("")) {
                 Debug.printVerbose("-Dexec.mainClass=\"it.polimi.distsys." + packageClass + "\"");
-                pb = new ProcessBuilder("mvn", "exec:java", "-Dexec.mainClass=" + packageClass, "-Dexec.args=\"" + outJson + "\"");
+
+                pb = new ProcessBuilder(osClassPath, "exec:java", "-Dexec.mainClass=" + packageClass, "-Dexec.args=\"" + outJson + "\"");
+                //pb.environment().put("PATH", System.getProperty("PATH"));
             } else {
                 pb = new ProcessBuilder("java", "-cp", jarFile, packageClass, outJson);
             }
@@ -92,6 +94,7 @@ public class OperatorDeployment implements MessageSupervisor {
         }
         catch (Exception e)
         {
+            e.printStackTrace();
             Debug.printError(e);
         }
 
