@@ -60,4 +60,8 @@ public class SocketManager {
     {
         nodeSocketList.get(nodeToDeploy).deployOperator(operatorDeployment);
     }
+
+	public int getNumberOfCurrentlyConnectedDaemons() {
+		return nodeSocketList.size();
+	}
 }

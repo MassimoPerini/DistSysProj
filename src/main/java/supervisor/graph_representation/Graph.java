@@ -97,13 +97,13 @@ public class Graph<T> {
 	public static void main(String[] args)
 	{
 		Graph<Integer> g=new Graph<>();
-		Vertex<Integer> v1=new Vertex<>(1);
-		Vertex<Integer> v2=new Vertex<>(2);
-		Vertex<Integer> v3=new Vertex<>(3);
-		Vertex<Integer> v4=new Vertex<>(4);
-		Vertex<Integer> v5=new Vertex<>(5);
-		Vertex<Integer> v6=new Vertex<>(6);
-		Vertex<Integer> v7=new Vertex<>(7);
+		Vertex<Integer> v1=new Vertex<>(1,null);
+		Vertex<Integer> v2=new Vertex<>(2,null);
+		Vertex<Integer> v3=new Vertex<>(3,null);
+		Vertex<Integer> v4=new Vertex<>(4,null);
+		Vertex<Integer> v5=new Vertex<>(5,null);
+		Vertex<Integer> v6=new Vertex<>(6,null);
+		Vertex<Integer> v7=new Vertex<>(7,null);
 		
 		g.connect(v1, v2, 6);
 		g.connect(v1, v3, 2);

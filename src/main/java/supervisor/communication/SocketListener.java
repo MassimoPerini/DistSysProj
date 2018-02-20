@@ -52,6 +52,14 @@ public class SocketListener{
             Debug.printError(e);
         }
     }
+    
+    
+    public void deployOperator(int positionOfDaemonSocketWhereOperatorWillAppear,OperatorDeployment operatorToBeDeployed)
+    {
+    	this.socketManager.deployNewOperator(positionOfDaemonSocketWhereOperatorWillAppear, operatorToBeDeployed);
+    }
 
-
+	public int getNumberOfCurrentlyConnectedDaemons() {
+		return this.socketManager.getNumberOfCurrentlyConnectedDaemons();
+	}
 }

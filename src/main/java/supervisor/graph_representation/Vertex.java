@@ -6,14 +6,16 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import supervisor.communication.message.OperatorDeployment;
+
 public class Vertex<T> implements Comparable<Vertex<T>>{
 	
 	private int id;
-	
+	private T data;
 	//from neighbor to cost
 	private Map<Integer,Double> neighbours;
 	
-	public Vertex(int id)
+	public Vertex(int id,T data)
 	{
 		this.id=id;
 		this.neighbours=new TreeMap<>();
@@ -42,5 +44,9 @@ public class Vertex<T> implements Comparable<Vertex<T>>{
 	@Override
 	public int compareTo(Vertex<T> o) {
 		return id-o.id;
+	}
+	
+	public T getData() {
+		return data;
 	}
 }
