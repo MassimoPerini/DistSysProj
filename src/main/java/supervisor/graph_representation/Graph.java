@@ -115,12 +115,6 @@ public class Graph<T> {
 		g.connect(v5, v7, 1);
 		g.connect(v6, v7, 3);
 		
-		
-		
-		
-		
-		
-		
 		g.addVertex(1, v1);
 		g.addVertex(2, v2);
 		g.addVertex(3, v3);

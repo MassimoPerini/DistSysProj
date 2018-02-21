@@ -13,6 +13,7 @@ import supervisor.communication.message.OperatorDeployment;
 import supervisor.graph_representation.Graph;
 import supervisor.graph_representation.Vertex;
 import utils.CliPrinter;
+import utils.Debug;
 
 /**
  * This class contains a socketListener to list all the available daemons.
@@ -40,20 +41,20 @@ public class InputReceiver implements Runnable{
 	@Override
 	public void run() {
         Scanner scanner=new Scanner(System.in);
-        String iString=scanner.nextLine();
-        Graph<OperatorDeployment> graph=new Gson().fromJson(iString, Graph.class);
+        String iString= scanner.nextLine();
+        Graph<OperatorDeployment> graph= new Gson().fromJson(iString, Graph.class);
         List<Vertex<OperatorDeployment>> sortedGraph=graph.topologicalSort();
         if(sortedGraph!=null)
         {
         	try {
 				deploy(sortedGraph);
 			} catch (NoDaemonAvailableException e) {
-				CliPrinter.printError("No daemon is currently available");
+				Debug.printError("No daemon is currently available");
 			}
         }
         else
         {
-        	CliPrinter.printError("Cyclic graph");
+        	Debug.printError("Cyclic graph");
         }
 		scanner.close();
 	}
