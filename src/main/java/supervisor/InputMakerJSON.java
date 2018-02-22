@@ -43,11 +43,16 @@ public class InputMakerJSON {
 
 
         writeGson = new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory)
-                .setPrettyPrinting().create();  //setPrettyPrinting
+                //.setPrettyPrinting()
+                .create();  //setPrettyPrinting
 
         Type fooType = new TypeToken<Graph<OperatorDeployment>>() {}.getType();
+        String output = writeGson.toJson(g, fooType);
+        System.out.println(output);
 
-        System.out.println(writeGson.toJson(g, fooType));
+        Graph<OperatorDeployment> graph = new Gson().fromJson(output, fooType);
+
+        System.out.println(graph.toString());
 
     }
 }

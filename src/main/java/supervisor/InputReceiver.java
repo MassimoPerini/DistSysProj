@@ -1,5 +1,6 @@
 package supervisor;
 
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -8,6 +9,7 @@ import java.util.Scanner;
 
 import com.google.gson.Gson;
 
+import com.google.gson.reflect.TypeToken;
 import supervisor.communication.SocketListener;
 import supervisor.communication.message.OperatorDeployment;
 import supervisor.graph_representation.Graph;
@@ -41,13 +43,19 @@ public class InputReceiver implements Runnable{
 	@Override
 	public void run() {
         Scanner scanner=new Scanner(System.in);
+        Debug.printVerbose("Waiting for JSON input");
         String iString= scanner.nextLine();
-        Graph<OperatorDeployment> graph= new Gson().fromJson(iString, Graph.class);
-        List<Vertex<OperatorDeployment>> sortedGraph=graph.topologicalSort();
+		Debug.printVerbose("JSON received");
+		Type fooType = new TypeToken<Graph<OperatorDeployment>>() {}.getType();
+		Debug.printVerbose("Token generated");
+		Graph<OperatorDeployment> graph= new Gson().fromJson(iString, fooType);
+		Debug.printVerbose("GSON processed" + graph.toString());
+		List<Vertex<OperatorDeployment>> sortedGraph=graph.topologicalSort();
         if(sortedGraph!=null)
         {
         	try {
 				deploy(sortedGraph);
+				Debug.printVerbose("Deployed sorted graph");
 			} catch (NoDaemonAvailableException e) {
 				Debug.printError("No daemon is currently available");
 			}
