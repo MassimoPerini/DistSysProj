@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import operator.recovery.DataKey;
+import operator.recovery.RecoveryManager;
 import operator.types.OperatorType;
 import operator.types.Sum;
 import supervisor.communication.message.MessageSupervisor;
@@ -53,6 +55,14 @@ public class InputMakerJSON {
         Graph<OperatorDeployment> graph = new Gson().fromJson(output, fooType);
 
         System.out.println(graph.toString());
+
+        RecoveryManager rm = new RecoveryManager();
+        DataKey d = new DataKey(1, "A");
+        DataKey d2 = new DataKey(1, "B");
+        rm.putDataInFile("example.json" , d);
+        System.out.println(rm.readDataFromFile("example.json"));
+        rm.putDataInFile("example.json", d2);
+        System.out.println(rm.readDataFromFile("example.json"));
 
     }
 }
