@@ -57,12 +57,18 @@ public class InputMakerJSON {
         System.out.println(graph.toString());
 
         RecoveryManager rm = new RecoveryManager();
+
         DataKey d = new DataKey(1, "A");
         DataKey d2 = new DataKey(1, "B");
-        rm.putDataInFile("example.json" , d);
+        /*rm.putDataInFile("example.json" , d);
         System.out.println(rm.readDataFromFile("example.json"));
         rm.putDataInFile("example.json", d2);
         System.out.println(rm.readDataFromFile("example.json"));
-
+        System.out.println(rm.readAndRemoveDataFromFile("example.json"));
+        */
+        rm.appendDataInFileList("example.json", d);
+        rm.appendDataInFileList("example.json", d2);
+        DataKey data = rm.drawDataFromFileList("example.json");
+        Debug.printVerbose(data.toString());
     }
 }
