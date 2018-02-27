@@ -68,6 +68,7 @@ public class InputMakerJSON {
         */
         rm.appendDataInFileList("example.json", d);
         rm.appendDataInFileList("example.json", d2);
+        rm.appendDataInFileList("example.json", d2);
         DataKey data = rm.drawDataFromFileList("example.json");
         Debug.printVerbose(data.toString());
     }
