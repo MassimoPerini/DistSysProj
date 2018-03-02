@@ -4,14 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.ProcessOperator;
-import operator.communication.OperatorSocket;
 import operator.types.OperatorType;
 import operator.types.Sum;
 import org.jetbrains.annotations.NotNull;
 import utils.Debug;
 
 import java.io.File;
-import java.net.Socket;
 import java.net.URI;
 
 /**
@@ -23,7 +21,7 @@ public class OperatorDeployment implements MessageSupervisor {
 
     //private final OperatorType operatorType;
     private final String jarFile;
-    private final String outJson;
+    private String outJson;
 
     /***
      *
@@ -39,6 +37,7 @@ public class OperatorDeployment implements MessageSupervisor {
                 .registerSubtype(Sum.class);
         Gson gson = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
         outJson = gson.toJson(operatorType, OperatorType.class);
+
 
     }
 

@@ -1,14 +1,8 @@
 package operator;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import operator.communication.OperatorSocket;
-import operator.types.OperatorType;
-import operator.types.Sum;
+import operator.communication.DaemonSocket;
 import utils.Debug;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
@@ -43,8 +37,8 @@ public class MainDaemon {
         URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
         String packageClass = ProcessOperator.class.getCanonicalName();
 
-        OperatorSocket operatorSocket = new OperatorSocket(new Socket("127.0.0.1", PORT));
-        operatorSocket.start();
+        DaemonSocket daemonSocket = new DaemonSocket(new Socket("127.0.0.1", PORT));
+        daemonSocket.start();
 
     }
 }

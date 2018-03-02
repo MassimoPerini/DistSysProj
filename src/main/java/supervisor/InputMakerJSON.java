@@ -14,6 +14,7 @@ import supervisor.graph_representation.Graph;
 import supervisor.graph_representation.Vertex;
 import utils.Debug;
 import java.lang.reflect.Type;
+import java.util.LinkedList;
 
 /**
  * Created by higla on 21/02/2018.
@@ -23,9 +24,9 @@ public class InputMakerJSON {
         Debug.setLevel(3);
         Debug.printVerbose("Main inputMaker started");
         Gson writeGson;
-        OperatorDeployment firstOperator = new OperatorDeployment(new Sum(2,2), "");
-        OperatorDeployment secondOperator = new OperatorDeployment(new Sum(3,3), "");
-        OperatorDeployment thirdOperator = new OperatorDeployment(new Sum(4,4), "");
+        OperatorDeployment firstOperator = new OperatorDeployment(new Sum(2,2, null, new LinkedList<>()), "");
+        OperatorDeployment secondOperator = new OperatorDeployment(new Sum(3,3, null, new LinkedList<>()), "");
+        OperatorDeployment thirdOperator = new OperatorDeployment(new Sum(4,4, null, new LinkedList<>()), "");
 
         Graph<OperatorDeployment> g =new Graph<>();
         Vertex<OperatorDeployment> v1=new Vertex<>(1,firstOperator);

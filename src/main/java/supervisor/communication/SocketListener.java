@@ -1,11 +1,13 @@
 package supervisor.communication;
 
+import operator.types.OperatorType;
 import operator.types.Sum;
 import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -42,7 +44,8 @@ public class SocketListener{
                 this.socketManager.addSocket(nodeSocket);
 
                 //TODO SPOSTARE QUESTA PARTE
-                OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2),"");//TODO trovare qualche metodo migliore di passare il JAR
+
+                OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2, null, new LinkedList<>()),"");//TODO trovare qualche metodo migliore di passare il JAR
                 this.socketManager.deployNewOperator(0, operatorDeployment);
 
             }
@@ -50,6 +53,7 @@ public class SocketListener{
         catch (Exception e)
         {
             Debug.printError(e);
+            e.printStackTrace();
         }
     }
 }

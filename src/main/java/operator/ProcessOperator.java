@@ -21,6 +21,7 @@ public class ProcessOperator {
         Gson gson  = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
         OperatorType o = gson.fromJson(args[0], OperatorType.class);
         Debug.printVerbose("Operazione assegnata: "+o.toString());
+        o.deploy();
 
     }
 

@@ -6,7 +6,6 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
 import org.jetbrains.annotations.NotNull;
-import supervisor.communication.SocketManager;
 import supervisor.communication.message.MessageSupervisor;
 import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
@@ -19,7 +18,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by massimo on 10/02/18.
  */
-public class OperatorSocket {
+public class DaemonSocket {
 
     private final Socket socket;
 
@@ -29,7 +28,7 @@ public class OperatorSocket {
     private final Gson writeGson;
     private final ExecutorService executorService;
 
-    public OperatorSocket(@NotNull Socket socket) throws IOException {
+    public DaemonSocket(@NotNull Socket socket) throws IOException {
         this.socket = socket;
 
         this.socketIn = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
@@ -50,7 +49,13 @@ public class OperatorSocket {
 
     public void start()
     {
-        this.executorService.submit(this::listen);
+        try {
+            this.executorService.submit(this::listen);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void listen() {
