@@ -21,7 +21,7 @@ public class MainSupervisor {
 
         SocketManager socketManager = new SocketManager();
         SocketListener socketListener = new SocketListener(socketManager);
-        InputReceiver receiver= new InputReceiver(socketListener);
+        InputReceiver receiver= new InputReceiver(socketManager);
         
         
         ExecutorService executorService = Executors.newCachedThreadPool();

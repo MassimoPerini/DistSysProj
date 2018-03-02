@@ -8,8 +8,6 @@ import java.util.List;
 import operator.types.Sum;
 import org.junit.Test;
 
-import operator.Node;
-
 public class NodeTest {
 
 	/**
@@ -25,6 +23,7 @@ public class NodeTest {
 	 * 
 	 * @return
 	 */
+	/*
 	private List<Node> createGraph()
 	{
 		List<Node> graph=new ArrayList<Node>();
@@ -46,5 +45,5 @@ public class NodeTest {
 		assertEquals(2, graph.get(0).getForwardStar().size());
 		assertEquals(1, graph.get(1).getBackwardStar().size());
 	}
-
+*/
 }

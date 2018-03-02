@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 
 import com.google.gson.reflect.TypeToken;
 import supervisor.communication.SocketListener;
+import supervisor.communication.SocketManager;
 import supervisor.communication.message.OperatorDeployment;
 import supervisor.graph_representation.Graph;
 import supervisor.graph_representation.Vertex;
@@ -26,14 +27,14 @@ public class InputReceiver implements Runnable{
 	/**
 	 * The available daemons
 	 */
-	private SocketListener socketListener;
+	private SocketManager socketManager;
 	
 	/**
-	 * @param listener the component in charge of waiting for daemons to connect
+	 * @param manager the component in charge of waiting for daemons to connect
 	 */
-	public InputReceiver(SocketListener listener) 
+	public InputReceiver(SocketManager manager)
 	{
-		this.socketListener=listener;
+		this.socketManager=manager;
 	}
 	
 	/**
@@ -74,15 +75,15 @@ public class InputReceiver implements Runnable{
 	 */
 	public void deploy (List<Vertex<OperatorDeployment>> graph) throws NoDaemonAvailableException
 	{
-		if(this.socketListener.getNumberOfCurrentlyConnectedDaemons()==0)
+		if(this.socketManager.getNumberOfCurrentlyConnectedDaemons()==0)
 		{
 			throw new NoDaemonAvailableException(); 
 		}
 		Collections.reverse(graph);
 		for(Vertex<OperatorDeployment> curr:graph)
 		{
-			int position=new Random().nextInt(this.socketListener.getNumberOfCurrentlyConnectedDaemons());
-			this.socketListener.deployOperator(position, curr.getData());
+			int position=new Random().nextInt(this.socketManager.getNumberOfCurrentlyConnectedDaemons());
+			this.socketManager.deployNewOperator(position, curr.getData());
 		}
 	}
 

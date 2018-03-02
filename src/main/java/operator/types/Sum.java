@@ -19,6 +19,7 @@ public class Sum extends OperatorType {
         super();
         this.size = size;
         this.slide = slide;
+
     }
 
     public double execute(List<Double> inputData) {

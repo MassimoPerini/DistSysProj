@@ -29,6 +29,7 @@ public class TaskSocket{
 
     public TaskSocket(@NotNull Socket socket) throws IOException {
         this.socket = socket;
+        this.socket.getInputStream();
         this.socketIn = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
         this.socketOut = new PrintWriter(new OutputStreamWriter(this.socket.getOutputStream()));
 
