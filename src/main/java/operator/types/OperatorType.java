@@ -10,7 +10,7 @@ import supervisor.Position;
  * Represents the generic type of operator
  *
  */
-public abstract class OperatorType {
+public abstract class OperatorType{
 
     int size;
     int slide;
@@ -32,5 +32,9 @@ public abstract class OperatorType {
     abstract double execute(List<Double> inputData);
     abstract int getSize();
     abstract int getSlide();
-
+    
+	public Position getOwnPort() {
+		return ownPort;
+	}
+    
 }

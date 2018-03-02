@@ -19,6 +19,20 @@ import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
  * Created by higla on 24/02/2018.
  */
 public class RecoveryManager {
+	
+	private String destinationFile;
+	
+	public RecoveryManager(String destinationFile)
+	{
+		this.destinationFile=destinationFile;
+	}
+	
+	public void appendData(DataKey elem)
+	{
+		appendDataInFileList(destinationFile, elem);
+	}
+	
+	
     /**
      * this method appends to an existing file, new Datas.
      * If the file doesn't exist it creates one. Note that if the file already exists (and it has old data),
@@ -28,7 +42,7 @@ public class RecoveryManager {
      * @param fileName is the name of the File that will be used for the path
      * @param dataKey is the value to append to the file
      */
-    public void appendDataInFileList(String fileName, DataKey dataKey){
+    private void appendDataInFileList(String fileName, DataKey dataKey){
         String s;
         StringBuilder toConvertFromJSON = new StringBuilder();
         try
