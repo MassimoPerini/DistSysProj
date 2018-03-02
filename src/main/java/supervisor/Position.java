@@ -1,5 +1,7 @@
 package supervisor;
 
+import java.net.SocketImpl;
+
 //todo: position forse è IP+PORTA
 /**
  * This class represents the location of operators
@@ -13,6 +15,8 @@ public class Position {
 	 * This number is the index of the position in the machine
 	 */
 	private int positionInMachine;
+	
+	private int port;
 	
 	public Position(String ipAddress, int i) {
 		this.ipAddress=ipAddress;
@@ -29,5 +33,8 @@ public class Position {
 	}
 	public void setPositionInMachine(int positionInMachine) {
 		this.positionInMachine = positionInMachine;
+	}
+	public int getPort() {
+		return port;
 	}
 }
