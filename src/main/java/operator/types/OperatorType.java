@@ -104,6 +104,9 @@ public abstract class OperatorType {
 
     }
 
+    public Position getOwnPort() {
+        return ownPort;
+    }
 
     public synchronized void addToMessageQueue(MessageData messageData)
     {
