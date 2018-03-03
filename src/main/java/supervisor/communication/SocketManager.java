@@ -11,6 +11,9 @@ import java.util.concurrent.Executors;
 
 /**
  * Created by massimo on 10/02/18.
+ * This classed isused to handle sockets, in particular
+ * 1) It assigns operators to a node (deployNewOperator)
+ * 2) Manages the heartbeat
  */
 public class SocketManager {
 

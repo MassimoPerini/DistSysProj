@@ -18,6 +18,7 @@ import java.util.LinkedList;
 
 /**
  * Created by higla on 21/02/2018.
+ * This class is a temporary class used to generate the gson input
  */
 public class InputMakerJSON {
     public static void main(String[] args) {
@@ -51,26 +52,23 @@ public class InputMakerJSON {
 
         Type fooType = new TypeToken<Graph<OperatorDeployment>>() {}.getType();
         String output = writeGson.toJson(g, fooType);
-        System.out.println(output);
+        Debug.printVerbose(output);
 
         Graph<OperatorDeployment> graph = new Gson().fromJson(output, fooType);
 
-        System.out.println(graph.toString());
-
-        RecoveryManager rm = new RecoveryManager();
-
+        Debug.printVerbose(graph.toString());
+        /*
+        RecoveryManager rm = new RecoveryManager("example.json");
         DataKey d = new DataKey(1, "A");
         DataKey d2 = new DataKey(1, "B");
-        /*rm.putDataInFile("example.json" , d);
+        rm.putDataInFile("example.json" , d);
         System.out.println(rm.readDataFromFile("example.json"));
         rm.putDataInFile("example.json", d2);
         System.out.println(rm.readDataFromFile("example.json"));
         System.out.println(rm.readAndRemoveDataFromFile("example.json"));
-        */
-        rm.appendDataInFileList("example.json", d);
-        rm.appendDataInFileList("example.json", d2);
-        rm.appendDataInFileList("example.json", d2);
-        DataKey data = rm.drawDataFromFileList("example.json");
-        Debug.printVerbose(data.toString());
+        rm.appendDataInFileList(d);
+        rm.appendDataInFileList(d2);
+        rm.appendDataInFileList(d2);*/
+        //Debug.printVerbose(data.toString());
     }
 }

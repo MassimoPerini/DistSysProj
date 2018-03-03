@@ -12,7 +12,7 @@ import supervisor.Position;
 import utils.Debug;
 
 /**
- * It receives input from one socket and writes it to a file
+ * This class receives input from one socket and writes it to a file
  */
 public class ElementReceiver implements Runnable{
 	
@@ -31,8 +31,8 @@ public class ElementReceiver implements Runnable{
 	private Position position;
 	/**
 	 * Read elements from the given socket and push them to the file with given name
-	 * @param socket
-	 * @param queue
+	 * @param socket it's the source of the data
+	 * @param ownPosition
 	 */
 	public ElementReceiver(Socket socket,Position ownPosition)
 	{
@@ -51,9 +51,9 @@ public class ElementReceiver implements Runnable{
 					this.manager=new RecoveryManager(position.toString()+number.getSenderPosition().toString()+"arrival.txt");
 				manager.appendData(number);
 			} catch (IOException e) {
-				Debug.printDebug(e);
+				Debug.printError(e);
 			} catch (ClassNotFoundException e) {
-				Debug.printDebug(e);
+				Debug.printError(e);
 			}
 		}
 	}

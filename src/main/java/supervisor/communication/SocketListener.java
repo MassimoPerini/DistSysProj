@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 
 /**
  * Created by massimo on 10/02/18.
+ * This class listens to a socket and adds it to the socketManager it has been constructed with.
  */
 public class SocketListener{
 

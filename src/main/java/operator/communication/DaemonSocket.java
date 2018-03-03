@@ -72,11 +72,11 @@ public class DaemonSocket {
             }
         }
         catch (IOException e) {
-            Debug.printDebug(e);
+            Debug.printError(e);
         }
         catch (Exception e)
         {
-            Debug.printDebug(e);
+            Debug.printError(e);
             e.printStackTrace();
         }
         //receive
@@ -93,7 +93,7 @@ public class DaemonSocket {
             }
             catch (Exception e)
             {
-                Debug.printDebug(e);
+                Debug.printError(e);
             }
         });
     }

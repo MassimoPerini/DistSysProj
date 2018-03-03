@@ -4,7 +4,7 @@ package operator.communication.message;
  * Created by massimo on 02/03/18.
  */
 public class MessageData {
-
+    //todo: add key
     private String ipAddr;
     private String port;
     private int counter;

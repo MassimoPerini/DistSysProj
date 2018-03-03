@@ -2,6 +2,7 @@ package operator.communication;
 
 import operator.communication.message.MessageData;
 import operator.communication.message.MessageOperator;
+import utils.Debug;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -26,7 +27,7 @@ public class Sink implements OperatorOutputQueue {
     public synchronized void keepSending()
     {
         try {
-            System.out.println("Sink started");
+            Debug.printVerbose("Sink started");
             while (true) {
                 while (messageData.size() == 0) {
                     try {
@@ -36,7 +37,7 @@ public class Sink implements OperatorOutputQueue {
                     }
                 }
 
-                System.out.println("WRITING " + messageData.get(0));
+                Debug.printVerbose("WRITING " + messageData.get(0));
                 messageData.remove(0);
 
             }
