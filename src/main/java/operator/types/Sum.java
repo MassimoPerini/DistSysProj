@@ -29,31 +29,13 @@ public class Sum extends OperatorType {
         super(destination, size, slide, source);
     }
 
-    public synchronized void execute() {
-        while (true) {
-            while (messageDatas.size() < this.size) {
-                try {
-                    this.wait();
-                } catch (InterruptedException e) {
-                    Debug.printDebug(e);
-                }
-            }
-
-            System.out.println("Starting elaboration...");
-
-            List<MessageData> currentMsg = messageDatas.subList(0,size);
-
-            Stream<MessageData> currentM = currentMsg.stream();
-            double result = currentM.mapToDouble(MessageData::getValue).sum();
-            MessageData messageData = new MessageData(result);
-            messageDatas.subList(0, slide).clear();
-
-            executorService.submit(() -> sendMessage(messageData));
-
-        }
-
+    public synchronized void execute(){
+        super.execute();
     }
 
+    protected double operationType(List<Double> streamDatas){
+        return streamDatas.stream().reduce(Double::sum).orElse(0.0);
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -79,6 +79,7 @@ public class GraphDeployer implements Runnable{
 		{
 			throw new NoDaemonAvailableException(); 
 		}
+		//Reverses the topological order to simplify forward star implementation
 		Collections.reverse(graph);
 		for(Vertex<OperatorDeployment> curr:graph)
 		{

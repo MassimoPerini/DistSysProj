@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import operator.communication.OperatorOutputQueue;
 import operator.communication.Sink;
@@ -28,7 +30,7 @@ import utils.Debug;
  */
 public abstract class OperatorType {
 
-    final int size;
+    protected final int size;
     final int slide;
     private @Nullable SocketRepr source;
     private transient @NotNull List<OperatorOutputQueue> destination;
@@ -50,6 +52,30 @@ public abstract class OperatorType {
         this.slide = slide;
         source = socket;
     }
+
+    public synchronized void execute() {
+        //this condition is a while true loop
+        while (Math.random() < 10) {
+            while (messageDatas.size() < this.size) {
+                try {
+                    this.wait();
+                } catch (InterruptedException e) {
+                    Debug.printDebug(e);
+                }
+            }
+
+            Debug.printVerbose("Starting elaboration...");
+
+            List<MessageData> currentMsg = messageDatas.subList(0,size);
+
+            double result = this.operationType(currentMsg.stream().map(MessageData::getValue).collect(Collectors.toList()));
+            MessageData messageData = new MessageData(result);
+            messageDatas.subList(0, slide).clear();
+
+            executorService.submit(() -> sendMessage(messageData));
+        }
+    }
+     protected abstract double operationType(List<Double> streamDatas);
 
     /**
      * This attribute contains the position of all the nodes to which the output must be sent
@@ -125,7 +151,6 @@ public abstract class OperatorType {
         //TODO output the message (a new thread wants to send this message)
     }
 
-    abstract void execute();
     public int getSize()
     {
         return this.size;
