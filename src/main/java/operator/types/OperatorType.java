@@ -2,6 +2,7 @@ package operator.types;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -11,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import operator.ElementReceiver;
 import operator.communication.OperatorOutputQueue;
 import operator.communication.Sink;
 import operator.communication.SocketOperatorOutputQueue;
@@ -121,11 +123,21 @@ public abstract class OperatorType {
         {
             StreamReader streamReader = new StreamReader("src/main/resources/input.txt");
             executorService.submit(() -> streamReader.startReceiving(this));    //Start input threads
-            this.execute();     //This thread will do the computations once called
-
+            executorService.submit(this::execute);
         }
         else{
-            //TODO start socket input
+            try {
+				ServerSocket serverSocket=new ServerSocket(ownPort.getPort());
+				while(true)
+				{
+					Socket socket=serverSocket.accept();
+					ElementReceiver receiver=new ElementReceiver(socket, ownPort);
+					executorService.submit(()->receiver.startReceiving(this));
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
 
     }

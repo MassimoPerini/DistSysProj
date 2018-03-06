@@ -2,6 +2,8 @@ package supervisor;
 
 import java.net.SocketImpl;
 
+import operator.types.SocketRepr;
+
 //todo: position forse è IP+PORTA
 /**
  * This class represents the location of operators
@@ -21,6 +23,12 @@ public class Position {
 	public Position(String ipAddress, int i) {
 		this.ipAddress=ipAddress;
 		this.positionInMachine=i;
+	}
+	
+	//TODO
+	public Position(SocketRepr repr)
+	{
+		
 	}
 	public String getIpAddress() {
 		return ipAddress;

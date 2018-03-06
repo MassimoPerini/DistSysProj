@@ -5,16 +5,17 @@ import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.Vector;
 
-
+import operator.communication.OperatorInputQueue;
 import operator.recovery.DataKey;
 import operator.recovery.RecoveryManager;
+import operator.types.OperatorType;
 import supervisor.Position;
 import utils.Debug;
 
 /**
  * This class receives input from one socket and writes it to a file
  */
-public class ElementReceiver implements Runnable{
+public class ElementReceiver implements OperatorInputQueue{
 	
 	/**
 	 * This socket is used to receive input
@@ -27,6 +28,7 @@ public class ElementReceiver implements Runnable{
 	 */
 	private RecoveryManager manager;
 
+	private OperatorType addressee;
 	
 	private Position position;
 	/**
@@ -41,8 +43,11 @@ public class ElementReceiver implements Runnable{
 		this.position=ownPosition;
 	}
 	
+
+
 	@Override
-	public void run() {
+	public void startReceiving(OperatorType operatorType) {
+		this.addressee=operatorType;
 		while(true)
 		{
 			try {
