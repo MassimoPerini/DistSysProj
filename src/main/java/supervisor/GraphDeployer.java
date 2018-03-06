@@ -22,7 +22,7 @@ import utils.Debug;
  * This class contains a socketListener to list all the available daemons.
  * Upon user request, it deploys the graph given in input over the aforementioned daemons.
  */
-public class InputReceiver implements Runnable{
+public class GraphDeployer implements Runnable{
 	
 	/**
 	 * The available daemons
@@ -32,7 +32,7 @@ public class InputReceiver implements Runnable{
 	/**
 	 * @param manager the component in charge of waiting for daemons to connect
 	 */
-	public InputReceiver(SocketManager manager)
+	public GraphDeployer(SocketManager manager)
 	{
 		this.socketManager=manager;
 	}
