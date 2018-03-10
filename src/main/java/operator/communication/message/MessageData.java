@@ -3,6 +3,7 @@ package operator.communication.message;
 /**
  * Created by massimo on 02/03/18.
  */
+@Deprecated
 public class MessageData {
     //todo: add key
     private String ipAddr;

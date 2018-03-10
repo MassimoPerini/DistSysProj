@@ -29,9 +29,6 @@ public class Sum extends OperatorType {
         super(destination, size, slide, source);
     }
 
-    public synchronized void execute(){
-        super.execute();
-    }
 
     protected double operationType(List<Double> streamDatas){
         return streamDatas.stream().reduce(Double::sum).orElse(0.0);

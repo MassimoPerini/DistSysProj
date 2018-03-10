@@ -6,6 +6,7 @@ import supervisor.Position;
  * Created by higla on 24/02/2018.
  */
 public class DataKey {
+
     private float data;
     private String progressiveKey;
     
@@ -13,11 +14,14 @@ public class DataKey {
     
     // we assume that the key is given
     public DataKey(float data, String progressiveKey) {
+
         this.data = data;
         this.progressiveKey = progressiveKey;
     }
 
+
     public float getData() {
+
         return data;
     }
 
@@ -29,13 +33,12 @@ public class DataKey {
         return progressiveKey;
     }
 
-    public void setProgressiveKey(String progressiveKey) {
-        this.progressiveKey = progressiveKey;
-    }
+
 
 	public Position getSenderPosition() {
 		return senderPosition;
 	}
+
 
 	public void setSenderPosition(Position senderPosition) {
 		this.senderPosition = senderPosition;
@@ -72,6 +75,7 @@ public class DataKey {
     {
         return checkEqualKey(dataKey.getProgressiveKey()) && checkEqualValue(dataKey.getData());
     }
+
 
 
 

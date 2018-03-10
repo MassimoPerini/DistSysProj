@@ -17,6 +17,8 @@ import operator.communication.OutputToFile;
 import operator.communication.OutputToSocket;
 import operator.communication.InputFromFile;
 import operator.communication.message.MessageData;
+import operator.recovery.DataKey;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
@@ -37,6 +39,7 @@ public abstract class OperatorType {
     private final @NotNull List<SocketRepr> socketDescription;
     private transient ExecutorService executorService;
     private transient BlockingQueue<MessageData> sourceMsgQueue; //messaggi input -> processo
+
 
     public OperatorType(@NotNull List<SocketRepr> destination, int size, int slide)
     {
@@ -77,6 +80,7 @@ public abstract class OperatorType {
 
             double result = this.operationType(currentMsg.stream().map(MessageData::getValue).collect(Collectors.toList()));
             MessageData messageData = new MessageData(result);
+
 
             executorService.submit(() -> sendMessage(messageData));
         }
