@@ -44,6 +44,8 @@ public class RecoveryManager {
      */
     private void appendDataInFileList(String fileName, DataKey dataKey){
         String s;
+        //added after Fulvio put destinationFile
+        fileName = this.destinationFile;
         StringBuilder toConvertFromJSON = new StringBuilder();
         try
         {
@@ -156,5 +158,57 @@ public class RecoveryManager {
         //todo: handle null?
         return value;
     }
+
+    public void removeDataFromList(DataKey dataToCheck){
+        String s;
+        StringBuilder toConvertFromJSON = new StringBuilder();
+        try
+        {
+            FileReader fr=new FileReader(destinationFile);
+            BufferedReader br=new BufferedReader(fr);
+
+            while((s=br.readLine())!=null)
+            {
+                toConvertFromJSON.append(s);
+
+            }
+            Type type = new TypeToken<List<DataKey>>() {}.getType();
+            List<DataKey> datas = new Gson().fromJson(toConvertFromJSON.toString(), type);
+            if(datas != null) {
+                //i look for the data
+                for(DataKey data:datas){
+                    if(data.checkSameData(dataToCheck))
+                        datas.remove(data);
+                }
+            }
+            try{
+                Path filePath = Paths.get(destinationFile);
+                BufferedWriter bw= Files.newBufferedWriter(filePath, TRUNCATE_EXISTING);
+                bw.write( new Gson().toJson(datas, type));
+                Debug.printVerbose("New datas on file : " + datas.toString());
+                bw.close();
+            }
+            catch(FileNotFoundException e)
+            {
+                Debug.printError("File wasn't found!");
+            }
+            catch(IOException e)
+            {
+                Debug.printError("No file found!");
+            }
+            br.close();
+        }
+        catch(FileNotFoundException e)
+        {
+            Debug.printError("Error1, file not found!");
+        }
+        catch(IOException e)
+        {
+            Debug.printError("Error2, IO exception!");
+        }
+
+    }
+
+
 }
 

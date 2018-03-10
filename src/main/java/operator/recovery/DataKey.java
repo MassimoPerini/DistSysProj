@@ -6,18 +6,18 @@ import supervisor.Position;
  * Created by higla on 24/02/2018.
  */
 public class DataKey {
-    private int data;
+    private float data;
     private String progressiveKey;
     
     private transient Position senderPosition;
     
     // we assume that the key is given
-    public DataKey(int data, String progressiveKey) {
+    public DataKey(float data, String progressiveKey) {
         this.data = data;
         this.progressiveKey = progressiveKey;
     }
 
-    public int getData() {
+    public float getData() {
         return data;
     }
 
@@ -40,4 +40,41 @@ public class DataKey {
 	public void setSenderPosition(Position senderPosition) {
 		this.senderPosition = senderPosition;
 	}
+
+    /**
+     * this method checks if
+     * @param key is equal to a string
+     * @return true if it equal
+     */
+	private boolean checkEqualKey(String key){
+        if(this.progressiveKey.equals(key))
+            return true;
+        return false;
+    }
+
+    /**
+     * this method checks if
+     * @param value is equal to the value
+     * @return true if it equal
+     */
+    private boolean checkEqualValue(float value){
+        if(this.data == value)
+            return true;
+        return false;
+    }
+
+    /**
+     * checks if two
+     * @param dataKey s are the same
+     * @return true if they are the same
+     */
+    public boolean checkSameData(DataKey dataKey)
+    {
+        return checkEqualKey(dataKey.getProgressiveKey()) && checkEqualValue(dataKey.getData());
+    }
+
+
+
+
+
 }
