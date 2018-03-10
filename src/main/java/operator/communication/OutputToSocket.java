@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 /**
  * Created by massimo on 02/03/18.
  */
-public class SocketOperatorOutputQueue implements OperatorOutputQueue{
+public class OutputToSocket implements OperatorOutputQueue{
 
 
     private final Socket socket;
@@ -25,7 +25,7 @@ public class SocketOperatorOutputQueue implements OperatorOutputQueue{
     private final Gson writeGson;
     private final ExecutorService executorService;
 
-    public SocketOperatorOutputQueue(@NotNull Socket socket) throws IOException {
+    public OutputToSocket(@NotNull Socket socket) throws IOException {
         this.socket = socket;
 
         this.socketIn = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
@@ -45,6 +45,7 @@ public class SocketOperatorOutputQueue implements OperatorOutputQueue{
     private void listen() {
         String input;
         Debug.printVerbose("operator queue out Socket receiving....");
+
     }
 
     public void send(@NotNull MessageData message){

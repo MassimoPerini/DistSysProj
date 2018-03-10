@@ -11,11 +11,11 @@ import java.io.FileReader;
 /**
  * Created by massimo on 02/03/18.
  */
-public class StreamReader implements OperatorInputQueue{
+public class InputFromFile implements OperatorInputQueue{
 
     private final String path;
 
-    public StreamReader(String path)
+    public InputFromFile(String path)
     {
         this.path = path;
     }
@@ -24,8 +24,6 @@ public class StreamReader implements OperatorInputQueue{
     public void startReceiving(OperatorType operatorType)
     {
         try {
-            //todo: togliere f.. Perchè?
-            File f = new File(path);
             BufferedReader b = new BufferedReader(new FileReader(this.path));
 
             String readLine = "";

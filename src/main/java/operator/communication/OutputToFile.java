@@ -15,7 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Created by massimo on 02/03/18.
  */
-public class Sink implements OperatorOutputQueue {
+public class OutputToFile implements OperatorOutputQueue {
 
     private BlockingQueue<MessageData> messageData = new LinkedBlockingQueue<>();
 
@@ -29,7 +29,7 @@ public class Sink implements OperatorOutputQueue {
     public void keepSending()
     {
         try {
-            Debug.printVerbose("Sink started");
+            Debug.printVerbose("OutputToFile started");
             while (true) {
 
                 MessageData msg = this.messageData.take();

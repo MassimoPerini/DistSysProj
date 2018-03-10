@@ -1,10 +1,8 @@
 package operator.types;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -12,19 +10,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import operator.ElementReceiver;
+import operator.communication.InputFromSocket;
 import operator.communication.OperatorOutputQueue;
-import operator.communication.Sink;
-import operator.communication.SocketOperatorOutputQueue;
-import operator.communication.StreamReader;
+import operator.communication.OutputToFile;
+import operator.communication.OutputToSocket;
+import operator.communication.InputFromFile;
 import operator.communication.message.MessageData;
-import operator.communication.message.MessageOperator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
-import supervisor.communication.SocketManager;
 import utils.Debug;
 
 /**
@@ -35,13 +30,13 @@ import utils.Debug;
  */
 public abstract class OperatorType {
 
-    protected final int size;
+    final int size;
     final int slide;
     private @Nullable SocketRepr source;
     private transient @NotNull List<OperatorOutputQueue> destination;
     private final @NotNull List<SocketRepr> socketDescription;
-    transient ExecutorService executorService;
-    transient BlockingQueue<MessageData> sourceMsgQueue; //messaggi input -> processo
+    private transient ExecutorService executorService;
+    private transient BlockingQueue<MessageData> sourceMsgQueue; //messaggi input -> processo
 
     public OperatorType(@NotNull List<SocketRepr> destination, int size, int slide)
     {
@@ -55,7 +50,7 @@ public abstract class OperatorType {
         this.socketDescription = destination;
         this.size = size;
         this.slide = slide;
-        source = socket;
+        this.source = socket;
     }
 
     public void execute() {
@@ -78,7 +73,6 @@ public abstract class OperatorType {
                 }
             }
 
-
             Debug.printVerbose("Starting elaboration of "+currentMsg.size()+" elements");
 
             double result = this.operationType(currentMsg.stream().map(MessageData::getValue).collect(Collectors.toList()));
@@ -92,12 +86,12 @@ public abstract class OperatorType {
     /**
      * This attribute contains the position of all the nodes to which the output must be sent
      */
-    private List<Position> forwardStar;
+    private List<Position> forwardStar; //TODO come socketDescription ???
     
     /**
      * This is the port from which the input arrives.
      */
-    private Position ownPort;
+    private Position ownPort;   //TODO come attributo source ???
 
     /***
      * Deploy the task on the operator
@@ -109,15 +103,15 @@ public abstract class OperatorType {
         this.destination = new LinkedList<>();
         if (socketDescription.size() == 0)
         {
-            this.destination.add(new Sink());   //No socket output -> write on file
+            this.destination.add(new OutputToFile());   //No socket output -> write on file
 
         }
         else
         {
             for (SocketRepr socketRepr : socketDescription) {
                 try {
-                    SocketOperatorOutputQueue socketOperatorOutputQueue = new SocketOperatorOutputQueue(new Socket(socketRepr.getAddress(),socketRepr.getPort()));
-                    this.destination.add(socketOperatorOutputQueue);
+                    OutputToSocket outputToSocket = new OutputToSocket(new Socket(socketRepr.getAddress(),socketRepr.getPort()));
+                    this.destination.add(outputToSocket);
 
                 } catch (IOException e) {
                     Debug.printDebug(e);
@@ -131,17 +125,20 @@ public abstract class OperatorType {
 
         if (source == null)
         {
-            StreamReader streamReader = new StreamReader("src/main/resources/input.txt");
-            executorService.submit(() -> streamReader.startReceiving(this));    //Start input threads
-            executorService.submit(this::execute);
+            InputFromFile inputFromFile = new InputFromFile("src/main/resources/input.txt");
+            executorService.submit(() -> inputFromFile.startReceiving(this));    //Start input threads
+            this.execute();
+            //executorService.submit(this::execute);            WHY???
         }
-        else{
+        else{       //Deploy input socket
             try {
-				ServerSocket serverSocket=new ServerSocket(ownPort.getPort());
+				//ServerSocket serverSocket=new ServerSocket(ownPort.getPort());
+                ServerSocket serverSocket=new ServerSocket(source.getPort());
+                executorService.submit(this::execute);
 				while(true)
 				{
 					Socket socket=serverSocket.accept();
-					ElementReceiver receiver=new ElementReceiver(socket, ownPort);
+					InputFromSocket receiver=new InputFromSocket(socket, ownPort);
 					executorService.submit(()->receiver.startReceiving(this));
 				}
 			} catch (IOException e) {
