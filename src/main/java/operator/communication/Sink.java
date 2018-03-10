@@ -7,15 +7,17 @@ import utils.Debug;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by massimo on 02/03/18.
  */
 public class Sink implements OperatorOutputQueue {
 
-    private List<MessageData> messageData = Collections.synchronizedList(new LinkedList<>());
+    private BlockingQueue<MessageData> messageData = new LinkedBlockingQueue<>();
 
     @Override
     public void start()
@@ -24,22 +26,15 @@ public class Sink implements OperatorOutputQueue {
         executorService.submit(this::keepSending);
     }
 
-    public synchronized void keepSending()
+    public void keepSending()
     {
         try {
             Debug.printVerbose("Sink started");
             while (true) {
-                while (messageData.size() == 0) {
-                    try {
-                        this.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
 
-                Debug.printVerbose("WRITING " + messageData.get(0));
-                messageData.remove(0);
+                MessageData msg = this.messageData.take();
 
+                Debug.printVerbose("WRITING " + msg);
             }
         }catch (Exception e)
         {
@@ -48,8 +43,11 @@ public class Sink implements OperatorOutputQueue {
     }
 
     @Override
-    public synchronized void send(MessageData msg) {
-        messageData.add(msg);
-        this.notifyAll();
+    public void send(MessageData msg) {
+        try {
+            messageData.put(msg);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

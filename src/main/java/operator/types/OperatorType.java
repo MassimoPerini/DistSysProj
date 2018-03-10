@@ -7,8 +7,10 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,6 +20,7 @@ import operator.communication.Sink;
 import operator.communication.SocketOperatorOutputQueue;
 import operator.communication.StreamReader;
 import operator.communication.message.MessageData;
+import operator.communication.message.MessageOperator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
@@ -38,7 +41,7 @@ public abstract class OperatorType {
     private transient @NotNull List<OperatorOutputQueue> destination;
     private final @NotNull List<SocketRepr> socketDescription;
     transient ExecutorService executorService;
-    transient List<MessageData> messageDatas; //messaggi input -> processo
+    transient BlockingQueue<MessageData> sourceMsgQueue; //messaggi input -> processo
 
     public OperatorType(@NotNull List<SocketRepr> destination, int size, int slide)
     {
@@ -55,24 +58,31 @@ public abstract class OperatorType {
         source = socket;
     }
 
-    public synchronized void execute() {
+    public void execute() {
         //this condition is a while true loop
         while (Math.random() < 10) {
-            while (messageDatas.size() < this.size) {
-                try {
-                    this.wait();
-                } catch (InterruptedException e) {
-                    Debug.printDebug(e);
+
+            List<MessageData> currentMsg = new LinkedList<>();
+
+            this.sourceMsgQueue.drainTo(currentMsg, this.size); //Put (and remove) at maximum this.size elements into currentMsg
+            int itemNeeded = this.size - currentMsg.size();
+            if (itemNeeded > 0) //If I need other elements...
+            {
+                for (int i = 0; i < itemNeeded; i++) {
+                    try {
+                        currentMsg.add(this.sourceMsgQueue.take());
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
-            Debug.printVerbose("Starting elaboration...");
 
-            List<MessageData> currentMsg = messageDatas.subList(0,size);
+            Debug.printVerbose("Starting elaboration of "+currentMsg.size()+" elements");
 
             double result = this.operationType(currentMsg.stream().map(MessageData::getValue).collect(Collectors.toList()));
             MessageData messageData = new MessageData(result);
-            messageDatas.subList(0, slide).clear();
 
             executorService.submit(() -> sendMessage(messageData));
         }
@@ -94,7 +104,7 @@ public abstract class OperatorType {
      */
     public void deploy()
     {
-        messageDatas = Collections.synchronizedList(new LinkedList<>());
+        this.sourceMsgQueue = new LinkedBlockingQueue<>();
         executorService = Executors.newCachedThreadPool();
         this.destination = new LinkedList<>();
         if (socketDescription.size() == 0)
@@ -146,16 +156,16 @@ public abstract class OperatorType {
         return ownPort;
     }
 
-    public synchronized void addToMessageQueue(MessageData messageData)
+    public void addToMessageQueue(MessageData messageData)
     {
-        this.messageDatas.add(messageData);
-        if (messageDatas.size() >=size)
-        {
-            notifyAll();    //start the "operational" thread
+        try {
+            this.sourceMsgQueue.put(messageData);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
-    public void sendMessage(MessageData messageData)
+    private void sendMessage(MessageData messageData)
     {
         for (OperatorOutputQueue operatorOutputQueue : destination) {
             operatorOutputQueue.send(messageData);
