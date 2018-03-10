@@ -4,7 +4,7 @@ package operator.communication.message;
  * Created by massimo on 02/03/18.
  */
 @Deprecated
-public class MessageData {
+public class MessageData implements Serializable {
     //todo: add key
     private String ipAddr;
     private String port;

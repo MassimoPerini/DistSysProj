@@ -113,13 +113,21 @@ public abstract class OperatorType {
         else
         {
             for (SocketRepr socketRepr : socketDescription) {
-                try {
-                    OutputToSocket outputToSocket = new OutputToSocket(new Socket(socketRepr.getAddress(),socketRepr.getPort()));
-                    this.destination.add(outputToSocket);
+                boolean keepLooping = false;
+                do {
+                    try {
+                        Socket socket = new Socket(socketRepr.getAddress(), socketRepr.getPort());
+                        OutputToSocket outputToSocket = new OutputToSocket(socket);
+                        this.destination.add(outputToSocket);
+                        keepLooping = false;
 
-                } catch (IOException e) {
-                    Debug.printDebug(e);
-                }
+                    } catch (IOException e) {
+                        //TODO Il socket in output (quindi l'altro operatore) non è pronto. Dovrei ciclare?
+                        Debug.printDebug(e);
+                        Debug.printDebug("I can't establish connection to the other node input!!!!");
+                        keepLooping = true;
+                    }
+                }while (keepLooping);
             }
         }
 
@@ -141,7 +149,9 @@ public abstract class OperatorType {
                 executorService.submit(this::execute);
 				while(true)
 				{
-					Socket socket=serverSocket.accept();
+                    Debug.printDebug("Start accepting new incoming connections!");
+                    Socket socket=serverSocket.accept();
+					Debug.printDebug("A new socket input!");
 					InputFromSocket receiver=new InputFromSocket(socket, ownPort);
 					executorService.submit(()->receiver.startReceiving(this));
 				}

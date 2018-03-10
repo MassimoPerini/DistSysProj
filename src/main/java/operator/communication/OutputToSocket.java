@@ -8,8 +8,10 @@ import utils.Debug;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by massimo on 02/03/18.
@@ -18,49 +20,55 @@ public class OutputToSocket implements OperatorOutputQueue{
 
 
     private final Socket socket;
-
-    private final BufferedReader socketIn;
-    private final PrintWriter socketOut;
-    private final Gson readGson;    //per ack
-    private final Gson writeGson;
+    private final ObjectInputStream socketIn;
+    private final ObjectOutputStream socketOut;
     private final ExecutorService executorService;
+    private final BlockingQueue<MessageData> messageData;
+
 
     public OutputToSocket(@NotNull Socket socket) throws IOException {
         this.socket = socket;
-
-        this.socketIn = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-        this.socketOut = new PrintWriter(new OutputStreamWriter(this.socket.getOutputStream()));
-        readGson=new GsonBuilder().create();
-        writeGson = new GsonBuilder().create();  //setPrettyPrinting
-        executorService = Executors.newCachedThreadPool();
-
+        this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
+        this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
+        this.executorService = Executors.newCachedThreadPool();
+        this.messageData = new LinkedBlockingQueue<>();
     }
 
 
     public void start()
     {
-        this.executorService.submit(this::listen);
+
+        this.executorService.submit(this::keepSending);
     }
 
-    private void listen() {
-        String input;
-        Debug.printVerbose("operator queue out Socket receiving....");
+    private void keepSending() {
+        Debug.printDebug("Start send with socket...");
+        while(true)
+        {
+            try {
+                MessageData messageData = this.messageData.take();
+                Debug.printVerbose("operator queue out Socket sending....");
+
+                this.socketOut.writeObject(messageData);
+                this.socketOut.flush();
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
     public void send(@NotNull MessageData message){
-        executorService.submit (() -> {
-            try {
-                String res = writeGson.toJson(message, MessageData.class);
-                Debug.printVerbose("SERVER: SENDING " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
-                socketOut.println(res);
-                socketOut.flush();
-            }
-            catch (Exception e)
-            {
-                Debug.printDebug(e);
-            }
-        });
+
+        try {
+            this.messageData.put(message);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     void finish(){

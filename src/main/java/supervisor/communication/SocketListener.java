@@ -1,10 +1,13 @@
 package supervisor.communication;
 
 import operator.types.OperatorType;
+import operator.types.SocketRepr;
 import operator.types.Sum;
 import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
@@ -35,6 +38,8 @@ public class SocketListener{
             ServerSocket serverSocket = new ServerSocket(PORT);
             Debug.printVerbose("SERVER SOCKET READY ON PORT" + PORT);
 
+            int i=0;
+
             while (true) {
                 //Waits for a new client to connect
                 Socket inputSocket = serverSocket.accept();
@@ -45,9 +50,25 @@ public class SocketListener{
                 this.socketManager.addSocket(nodeSocket);
 
                 //TODO SPOSTARE QUESTA PARTE
+                i++;
 
-                OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2, null, new LinkedList<>()),"");//TODO trovare qualche metodo migliore di passare il JAR
-                this.socketManager.deployNewOperator(0, operatorDeployment);
+                if (i == 2)
+                {
+                    InetAddress addr = InetAddress.getByName("127.0.0.1");
+                    SocketRepr firstSocket = new SocketRepr(addr, 1340);
+
+
+                    OperatorDeployment operatorDeploymentLast = new OperatorDeployment(new Sum(2,2, firstSocket, new LinkedList<>()),"");
+                    this.socketManager.deployNewOperator(1, operatorDeploymentLast);
+
+                    LinkedList<SocketRepr> outSocket = new LinkedList<>();
+                    outSocket.add(firstSocket);
+
+                    //source, destination
+                    OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2, null, outSocket),"");//TODO trovare qualche metodo migliore di passare il JAR
+                    this.socketManager.deployNewOperator(0, operatorDeployment);
+                }
+
 
             }
         }
