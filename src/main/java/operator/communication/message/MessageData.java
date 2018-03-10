@@ -1,5 +1,7 @@
 package operator.communication.message;
 
+import java.io.Serializable;
+
 /**
  * Created by massimo on 02/03/18.
  */
