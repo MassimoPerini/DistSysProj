@@ -1,6 +1,6 @@
 package operator.communication;
 
-import operator.communication.message.MessageData;
+import operator.recovery.DataKey;
 import operator.types.OperatorType;
 import utils.Debug;
 
@@ -29,7 +29,8 @@ public class InputFromFile implements OperatorInputQueue{
             String readLine = "";
             Debug.printVerbose("Reading file using Buffered Reader");
             while ((readLine = b.readLine()) != null) {
-                MessageData messageData = new MessageData(Double.parseDouble(readLine));
+                //todo: set key
+                DataKey messageData = new DataKey(Double.parseDouble(readLine), "key");
                 operatorType.addToMessageQueue(messageData);
                 Thread.sleep((long)(Math.random()*2000));
             }

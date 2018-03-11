@@ -3,6 +3,7 @@ package operator.types;
 import operator.communication.message.MessageData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import supervisor.Position;
 import utils.Debug;
 
 import java.net.Socket;
@@ -25,13 +26,13 @@ public class Sum extends OperatorType {
      * @param size The number of items that will be summed
      * @param slide The slide of the sum
      */
-    public Sum(int size, int slide, @Nullable SocketRepr source, @NotNull List<SocketRepr> destination) {
+    public Sum(int size, int slide, @Nullable Position source, @NotNull List<Position> destination) {
         super(destination, size, slide, source);
     }
 
 
-    protected double operationType(List<Double> streamDatas){
-        return streamDatas.stream().reduce(Double::sum).orElse(0.0);
+    protected float operationType(List<Float> streamDatas){
+        return streamDatas.stream().reduce(Float::sum).orElse((float)0.0);
     }
 
     @Override

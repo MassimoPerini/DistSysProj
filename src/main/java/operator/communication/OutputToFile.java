@@ -2,6 +2,7 @@ package operator.communication;
 
 import operator.communication.message.MessageData;
 import operator.communication.message.MessageOperator;
+import operator.recovery.DataKey;
 import utils.Debug;
 
 import java.util.Collections;
@@ -17,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class OutputToFile implements OperatorOutputQueue {
 
-    private BlockingQueue<MessageData> messageData = new LinkedBlockingQueue<>();
+    private BlockingQueue<DataKey> messageData = new LinkedBlockingQueue<>();
 
     @Override
     public void start()
@@ -32,7 +33,7 @@ public class OutputToFile implements OperatorOutputQueue {
             Debug.printVerbose("OutputToFile started");
             while (true) {
 
-                MessageData msg = this.messageData.take();
+                DataKey msg = this.messageData.take();
 
                 Debug.printVerbose("WRITING " + msg);
             }
@@ -43,7 +44,7 @@ public class OutputToFile implements OperatorOutputQueue {
     }
 
     @Override
-    public void send(MessageData msg) {
+    public void send(DataKey msg) {
         try {
             messageData.put(msg);
         } catch (InterruptedException e) {

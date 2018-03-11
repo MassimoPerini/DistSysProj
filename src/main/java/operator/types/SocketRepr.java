@@ -6,7 +6,7 @@ import java.net.InetAddress;
  * Created by massimo on 02/03/18.
  */
 public class SocketRepr {
-
+    /*
     private InetAddress address;
     private int port;
 
@@ -21,5 +21,5 @@ public class SocketRepr {
 
     public int getPort() {
         return port;
-    }
+    }*/
 }

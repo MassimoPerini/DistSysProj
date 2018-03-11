@@ -1,5 +1,6 @@
 package supervisor;
 
+import java.io.Serializable;
 import java.net.SocketImpl;
 
 import operator.types.SocketRepr;
@@ -8,7 +9,7 @@ import operator.types.SocketRepr;
 /**
  * This class represents the location of operators
  */
-public class Position {
+public class Position implements Serializable{
 	/**
 	 * The machine where this position lives
 	 */
@@ -24,16 +25,21 @@ public class Position {
 		this.ipAddress=ipAddress;
 		this.positionInMachine=i;
 	}
-	
+
+	public Position(String ipAddress, int port, int i) {
+		this.ipAddress=ipAddress;
+		this.port = port;
+		this.positionInMachine=i;
+	}
 	//TODO
 	public Position(SocketRepr repr)
 	{
 		
 	}
-	public String getIpAddress() {
+	public String getAddress() {
 		return ipAddress;
 	}
-	public void setIpAddress(String ipAddress) {
+	public void setAddress(String ipAddress) {
 		this.ipAddress = ipAddress;
 	}
 	public int getPositionInMachine() {

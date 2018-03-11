@@ -43,9 +43,14 @@ public class InputFromSocket implements OperatorInputQueue{
 		this.inputSocket=socket;
         this.socketOut = (new ObjectOutputStream(this.inputSocket.getOutputStream()));
 		this.socketIn = (new ObjectInputStream(this.inputSocket.getInputStream()));
+		//todo: senti fulvio chiedendogli cose
+		this.manager = new RecoveryManager(ownPosition.toString()
+				+ socket.getLocalAddress().toString()+ socket.getLocalPort() + "arrival.txt");
 
 		//TODO PERCHE'?
-		this.manager=null;
+		/*
+		this.manager=null;*/
+		//serve?
 		this.position=ownPosition;
 	}
 
@@ -56,16 +61,16 @@ public class InputFromSocket implements OperatorInputQueue{
 		{
 			try {
 
-				MessageData messageData = (MessageData) this.socketIn.readObject();
+				DataKey messageData = (DataKey) this.socketIn.readObject();
 				operatorType.addToMessageQueue(messageData);
-				System.out.println("Received "+ messageData);
+				Debug.printVerbose("Received "+ messageData);
 
 				/*
-				DataKey number=(DataKey)new ObjectInputStream(inputSocket.getInputStream()).readObject();
 				if(this.manager==null)		//TODO non è meglio metterlo nel costruttore?
 					this.manager=new RecoveryManager(position.toString()+number.getSenderPosition().toString()+"arrival.txt");
-				manager.appendData(number);
+
 				*/
+				manager.appendData(messageData);
 			} catch (IOException e) {
 				Debug.printError(e);
 			} catch (ClassNotFoundException e) {

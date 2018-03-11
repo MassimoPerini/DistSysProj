@@ -3,14 +3,16 @@ package operator.recovery;
 import operator.communication.message.MessageData;
 import supervisor.Position;
 
+import java.io.Serializable;
+
 /**
  * Created by higla on 24/02/2018.
  */
-public class DataKey {
+public class DataKey implements Serializable{
 
     private float data;
     private String progressiveKey;
-    
+    //todo: probabilmente eliminare - non ha senso inviarlo via socket tant'è che è transient
     private transient Position senderPosition;
     
     // we assume that the key is given
@@ -18,6 +20,15 @@ public class DataKey {
 
         this.data = data;
         this.progressiveKey = progressiveKey;
+    }
+    public DataKey(double data, String progressiveKey) {
+
+        this.data = (float)data;
+        this.progressiveKey = progressiveKey;
+    }
+
+    public DataKey(){
+
     }
 
     
@@ -35,7 +46,11 @@ public class DataKey {
 
         return data;
     }
+    //todo: pick one, getData or getValue()
+    public float getValue() {
 
+        return data;
+    }
     public void setData(int data) {
         this.data = data;
     }
@@ -83,9 +98,12 @@ public class DataKey {
         return checkEqualKey(dataKey.getProgressiveKey()) && checkEqualValue(dataKey.getData());
     }
 
-
-
-
-
-
+    @Override
+    public String toString() {
+        return "DataKey{" +
+                "data=" + data +
+                ", progressiveKey='" + progressiveKey + '\'' +
+                ", senderPosition=" + senderPosition +
+                '}';
+    }
 }

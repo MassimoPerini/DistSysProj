@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
 import utils.Debug;
 
+import javax.xml.crypto.Data;
+
 /**
  * Created by massimo on 11/02/18.
  *
@@ -38,11 +40,11 @@ public abstract class OperatorType {
 
     final int size;
     final int slide;
-    private @Nullable SocketRepr source;
+    private @Nullable Position source;
     private transient @NotNull List<OperatorOutputQueue> destination;
-    private final @NotNull List<SocketRepr> socketDescription;
+    private final @NotNull List<Position> socketDescription;
     private transient ExecutorService executorService;
-    private transient BlockingQueue<MessageData> sourceMsgQueue; //messaggi input -> processo
+    private transient BlockingQueue<DataKey> sourceMsgQueue; //messaggi input -> processo
     
     /**
      * This object is necessary to store the message being sent now.
@@ -54,7 +56,7 @@ public abstract class OperatorType {
      */
     private Set<OperatorOutputQueue> socketsThatHaveStoredCurrentMessage;
     
-    public OperatorType(@NotNull List<SocketRepr> destination, int size, int slide)
+    public OperatorType(@NotNull List<Position> destination, int size, int slide)
     {
         this.socketDescription = destination;
         this.size = size;
@@ -62,7 +64,7 @@ public abstract class OperatorType {
         recoverySetup();
     }
 
-    public OperatorType(@NotNull List<SocketRepr> destination, int size, int slide, @Nullable SocketRepr socket)
+    public OperatorType(@NotNull List<Position> destination, int size, int slide, @Nullable Position socket)
     {
         this.socketDescription = destination;
         this.size = size;
@@ -83,7 +85,7 @@ public abstract class OperatorType {
     
     public void execute() {
         //this condition is a while true loop
-    	List<MessageData> currentMsg = new LinkedList<>();
+    	List<DataKey> currentMsg = new LinkedList<>();
         while (Math.random() < 10) {
 
             
@@ -104,8 +106,9 @@ public abstract class OperatorType {
 
             Debug.printVerbose("Starting elaboration of "+currentMsg.size()+" elements");
 
-            double result = this.operationType(currentMsg.stream().map(MessageData::getValue).collect(Collectors.toList()));
-            MessageData messageData = new MessageData(result);
+            float result = this.operationType(currentMsg.stream().map(DataKey::getValue).collect(Collectors.toList()));
+            //todo aggiungere chiave
+            DataKey messageData = new DataKey(result, "chiave");
             currentMsg.forEach(msg->currentMessageRecoveryManager.appendData(msg));
             
             
@@ -115,12 +118,12 @@ public abstract class OperatorType {
             waitForEverySocketToSaveMessageInHisFile(messageData);
             for(int i=0;i<this.slide;i++)
             {
-            	MessageData d= currentMsg.remove(0);
+            	DataKey d= currentMsg.remove(0);
             	currentMessageRecoveryManager.removeDataFromList(d);
             }
         }
     }
-     protected abstract double operationType(List<Double> streamDatas);
+     protected abstract float operationType(List<Float> streamDatas);
 
   
     
@@ -144,7 +147,7 @@ public abstract class OperatorType {
         }
         else
         {
-            for (SocketRepr socketRepr : socketDescription) {
+            for (Position socketRepr : socketDescription) {
                 boolean keepLooping = false;
                 do {
                     try {
@@ -170,6 +173,7 @@ public abstract class OperatorType {
         if (source == null)
         {
             InputFromFile inputFromFile = new InputFromFile("src/main/resources/input.txt");
+
             executorService.submit(() -> inputFromFile.startReceiving(this));    //Start input threads
             this.execute();
             //executorService.submit(this::execute);            WHY???
@@ -199,7 +203,7 @@ public abstract class OperatorType {
         return ownPort;
     }
 
-    public void addToMessageQueue(MessageData messageData)
+    public void addToMessageQueue(DataKey messageData)
     {
         try {
             this.sourceMsgQueue.put(messageData);
@@ -208,7 +212,7 @@ public abstract class OperatorType {
         }
     }
 
-    private void sendMessage(MessageData messageData)
+    private void sendMessage(DataKey messageData)
     {
         for (OperatorOutputQueue operatorOutputQueue : destination) {
             operatorOutputQueue.send(messageData);
@@ -232,7 +236,7 @@ public abstract class OperatorType {
     /**
      * Wait for the given message to be written in all the files corresponding to the outgoing sockets
      */
-    public void waitForEverySocketToSaveMessageInHisFile(MessageData messageData)
+    public void waitForEverySocketToSaveMessageInHisFile(DataKey messageData)
     {
     	synchronized (socketsThatHaveStoredCurrentMessage) {
     		try {

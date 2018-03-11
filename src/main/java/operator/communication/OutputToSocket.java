@@ -3,6 +3,7 @@ package operator.communication;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import operator.communication.message.MessageData;
+import operator.recovery.DataKey;
 import org.jetbrains.annotations.NotNull;
 import utils.Debug;
 
@@ -23,7 +24,7 @@ public class OutputToSocket implements OperatorOutputQueue{
     private final ObjectInputStream socketIn;
     private final ObjectOutputStream socketOut;
     private final ExecutorService executorService;
-    private final BlockingQueue<MessageData> messageData;
+    private final BlockingQueue<DataKey> messageData;
 
 
     public OutputToSocket(@NotNull Socket socket) throws IOException {
@@ -46,7 +47,7 @@ public class OutputToSocket implements OperatorOutputQueue{
         while(true)
         {
             try {
-                MessageData messageData = this.messageData.take();
+                DataKey messageData = this.messageData.take();
                 Debug.printVerbose("operator queue out Socket sending....");
 
                 this.socketOut.writeObject(messageData);
@@ -61,7 +62,7 @@ public class OutputToSocket implements OperatorOutputQueue{
 
     }
 
-    public void send(@NotNull MessageData message){
+    public void send(@NotNull DataKey message){
 
         try {
             this.messageData.put(message);

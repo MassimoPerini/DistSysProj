@@ -103,7 +103,7 @@ public class RecoveryManager {
         }
         catch(FileNotFoundException e)
         {
-            Debug.printError("Error1, file not found!");
+            Debug.printError("Error1, file not found while appending data!");
         }
         catch(IOException e)
         {
@@ -156,7 +156,7 @@ public class RecoveryManager {
         }
         catch(FileNotFoundException e)
         {
-            Debug.printError("Error1, file not found!");
+            Debug.printError("Error1, file not found drawing data!");
         }
         catch(IOException e)
         {
@@ -207,7 +207,7 @@ public class RecoveryManager {
         }
         catch(FileNotFoundException e)
         {
-            Debug.printError("Error1, file not found!");
+            Debug.printError("Error1, file not found removing data!");
         }
         catch(IOException e)
         {

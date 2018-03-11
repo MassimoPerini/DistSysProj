@@ -3,6 +3,7 @@ package supervisor.communication;
 import operator.types.OperatorType;
 import operator.types.SocketRepr;
 import operator.types.Sum;
+import supervisor.Position;
 import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
 
@@ -54,14 +55,14 @@ public class SocketListener{
 
                 if (i == 2)
                 {
-                    InetAddress addr = InetAddress.getByName("127.0.0.1");
-                    SocketRepr firstSocket = new SocketRepr(addr, 1340);
+                    //InetAddress addr = InetAddress.getByName("127.0.0.1");
+                    Position firstSocket = new Position("127.0.0.1", 1340, 0);
 
 
                     OperatorDeployment operatorDeploymentLast = new OperatorDeployment(new Sum(2,2, firstSocket, new LinkedList<>()),"");
                     this.socketManager.deployNewOperator(1, operatorDeploymentLast);
 
-                    LinkedList<SocketRepr> outSocket = new LinkedList<>();
+                    LinkedList<Position> outSocket = new LinkedList<>();
                     outSocket.add(firstSocket);
 
                     //source, destination

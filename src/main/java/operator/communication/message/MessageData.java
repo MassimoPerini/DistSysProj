@@ -7,6 +7,7 @@ import java.io.Serializable;
  */
 @Deprecated
 public class MessageData implements Serializable {
+    /*
     //todo: add key
     private String ipAddr;
     private String port;
@@ -51,4 +52,5 @@ public class MessageData implements Serializable {
     public double getValue() {
         return value;
     }
+    */
 }
