@@ -3,8 +3,11 @@ package operator.types;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,6 +21,7 @@ import operator.communication.OutputToSocket;
 import operator.communication.InputFromFile;
 import operator.communication.message.MessageData;
 import operator.recovery.DataKey;
+import operator.recovery.RecoveryManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,13 +43,23 @@ public abstract class OperatorType {
     private final @NotNull List<SocketRepr> socketDescription;
     private transient ExecutorService executorService;
     private transient BlockingQueue<MessageData> sourceMsgQueue; //messaggi input -> processo
-
-
+    
+    /**
+     * This object is necessary to store the message being sent now.
+     * After the message is stored by all the output queues, this very object is used to delete it.
+     */
+    private RecoveryManager currentMessageRecoveryManager;
+    /**
+     * This set contains all the output queues that have stored/sent the message
+     */
+    private Set<OperatorOutputQueue> socketsThatHaveStoredCurrentMessage;
+    
     public OperatorType(@NotNull List<SocketRepr> destination, int size, int slide)
     {
         this.socketDescription = destination;
         this.size = size;
         this.slide = slide;
+        recoverySetup();
     }
 
     public OperatorType(@NotNull List<SocketRepr> destination, int size, int slide, @Nullable SocketRepr socket)
@@ -54,15 +68,27 @@ public abstract class OperatorType {
         this.size = size;
         this.slide = slide;
         this.source = socket;
+        recoverySetup();
     }
-
+    
+    /**
+     * Initialize the storage manager and the ack queue
+     */
+    private void recoverySetup()
+    {
+    	this.currentMessageRecoveryManager=new RecoveryManager("curr_"+source);
+    	this.socketsThatHaveStoredCurrentMessage=Collections.synchronizedSet(new HashSet<>());
+    }
+    
+    
     public void execute() {
         //this condition is a while true loop
+    	List<MessageData> currentMsg = new LinkedList<>();
         while (Math.random() < 10) {
 
-            List<MessageData> currentMsg = new LinkedList<>();
+            
 
-            this.sourceMsgQueue.drainTo(currentMsg, this.size); //Put (and remove) at maximum this.size elements into currentMsg
+          //  this.sourceMsgQueue.drainTo(currentMsg, this.size-currentMsg.size()); //Put (and remove) at maximum this.size elements into currentMsg
             int itemNeeded = this.size - currentMsg.size();
             if (itemNeeded > 0) //If I need other elements...
             {
@@ -80,17 +106,23 @@ public abstract class OperatorType {
 
             double result = this.operationType(currentMsg.stream().map(MessageData::getValue).collect(Collectors.toList()));
             MessageData messageData = new MessageData(result);
-
-
+            currentMsg.forEach(msg->currentMessageRecoveryManager.appendData(msg));
+            
+            
+           
             executorService.submit(() -> sendMessage(messageData));
+            
+            waitForEverySocketToSaveMessageInHisFile(messageData);
+            for(int i=0;i<this.slide;i++)
+            {
+            	MessageData d= currentMsg.remove(0);
+            	currentMessageRecoveryManager.removeDataFromList(d);
+            }
         }
     }
      protected abstract double operationType(List<Double> streamDatas);
 
-    /**
-     * This attribute contains the position of all the nodes to which the output must be sent
-     */
-    private List<Position> forwardStar; //TODO come socketDescription ???
+  
     
     /**
      * This is the port from which the input arrives.
@@ -180,6 +212,10 @@ public abstract class OperatorType {
     {
         for (OperatorOutputQueue operatorOutputQueue : destination) {
             operatorOutputQueue.send(messageData);
+            socketsThatHaveStoredCurrentMessage.add(operatorOutputQueue);
+            synchronized (operatorOutputQueue) {
+            	operatorOutputQueue.notify();
+			}
         }
         //TODO output the message (a new thread wants to send this message)
     }
@@ -192,5 +228,22 @@ public abstract class OperatorType {
     {
         return this.slide;
     }
-
+    
+    /**
+     * Wait for the given message to be written in all the files corresponding to the outgoing sockets
+     */
+    public void waitForEverySocketToSaveMessageInHisFile(MessageData messageData)
+    {
+    	synchronized (socketsThatHaveStoredCurrentMessage) {
+    		try {
+    			while(socketsThatHaveStoredCurrentMessage.size()<this.destination.size())
+    	    	{
+    	    			socketsThatHaveStoredCurrentMessage.wait();
+    	    	}
+    	
+			} catch (InterruptedException e) {
+				Debug.printDebug(e);
+			}
+    	}
+    }
 }

@@ -1,5 +1,6 @@
 package operator.recovery;
 
+import operator.communication.message.MessageData;
 import supervisor.Position;
 
 /**
@@ -19,8 +20,18 @@ public class DataKey {
         this.progressiveKey = progressiveKey;
     }
 
+    
+    /**
+     * Create a datakey similar to the given messagedata (ie same value, same counter)
+     * @param elem
+     */
+    public DataKey(MessageData elem) {
+		this.data=(float)elem.getValue();
+		this.progressiveKey=""+elem.getCounter();
+	}
 
-    public float getData() {
+
+	public float getData() {
 
         return data;
     }
