@@ -50,9 +50,7 @@ public class DataKey {
      * @return true if it equal
      */
 	private boolean checkEqualKey(String key){
-        if(this.progressiveKey.equals(key))
-            return true;
-        return false;
+        return(this.progressiveKey.equals(key));
     }
 
     /**
@@ -61,9 +59,7 @@ public class DataKey {
      * @return true if it equal
      */
     private boolean checkEqualValue(float value){
-        if(this.data == value)
-            return true;
-        return false;
+        return (this.data == value);
     }
 
     /**
