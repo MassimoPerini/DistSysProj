@@ -2,6 +2,8 @@ package operator.recovery;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import operator.communication.message.MessageData;
 import utils.Debug;
 
 import javax.xml.crypto.Data;
@@ -30,6 +32,11 @@ public class RecoveryManager {
 	public void appendData(DataKey elem)
 	{
 		appendDataInFileList(destinationFile, elem);
+	}
+	
+	public void appendData(MessageData elem)
+	{
+		appendData(new DataKey(elem));
 	}
 	
 	
@@ -208,6 +215,11 @@ public class RecoveryManager {
         }
 
     }
+
+	public void removeDataFromList(MessageData d) 
+	{
+		removeDataFromList(new DataKey(d));
+	}
 
 
 }
