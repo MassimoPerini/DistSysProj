@@ -56,7 +56,7 @@ public class SocketListener{
                 if (i == 2)
                 {
                     //InetAddress addr = InetAddress.getByName("127.0.0.1");
-                    Position firstSocket = new Position("127.0.0.1", 1340, 0);
+                    Position firstSocket = new Position("127.0.0.1", 1340);
 
 
                     OperatorDeployment operatorDeploymentLast = new OperatorDeployment(new Sum(2,2, firstSocket, new LinkedList<>()),"");

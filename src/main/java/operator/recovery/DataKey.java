@@ -16,25 +16,25 @@ public class DataKey implements Serializable{
     private transient Position senderPosition;
     
     // we assume that the key is given
-    public DataKey(float data, String progressiveKey) {
+    /*public DataKey(float data, String progressiveKey) {
 
         this.data = data;
         this.progressiveKey = progressiveKey;
-    }
+    }*/
     public DataKey(double data, String progressiveKey) {
 
         this.data = (float)data;
         this.progressiveKey = progressiveKey;
     }
-
+    /*
     public DataKey(){
 
     }
-
+    */
     
     /**
      * Create a datakey similar to the given messagedata (ie same value, same counter)
-     * @param elem
+     * @param
      */
     /*public DataKey(MessageData elem) {
 		this.data=(float)elem.getValue();
@@ -105,5 +105,13 @@ public class DataKey implements Serializable{
                 ", progressiveKey='" + progressiveKey + '\'' +
                 ", senderPosition=" + senderPosition +
                 '}';
+    }
+
+    /**
+     * this method is used to decode the key
+     * @return a String for the central file
+     */
+    public String decodeKey(){
+        return this.getValue() + this.getProgressiveKey();
     }
 }

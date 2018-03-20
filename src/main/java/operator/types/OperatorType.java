@@ -45,7 +45,7 @@ public abstract class OperatorType {
     private final @NotNull List<Position> socketDescription;
     private transient ExecutorService executorService;
     private transient BlockingQueue<DataKey> sourceMsgQueue; //messaggi input -> processo
-    
+
     /**
      * This object is necessary to store the message being sent now.
      * After the message is stored by all the output queues, this very object is used to delete it.
@@ -78,8 +78,13 @@ public abstract class OperatorType {
      */
     private void recoverySetup()
     {
-    	this.currentMessageRecoveryManager=new RecoveryManager("curr_"+source);
-    	this.socketsThatHaveStoredCurrentMessage=Collections.synchronizedSet(new HashSet<>());
+        if(source == null)
+            this.currentMessageRecoveryManager=new RecoveryManager("output_handler_recovery"+ "origin");
+        else {
+            this.currentMessageRecoveryManager =
+                    new RecoveryManager("output_handler_recovery" + source.toString());
+        }
+        this.socketsThatHaveStoredCurrentMessage=Collections.synchronizedSet(new HashSet<>());
     }
     
     
@@ -87,9 +92,6 @@ public abstract class OperatorType {
         //this condition is a while true loop
     	List<DataKey> currentMsg = new LinkedList<>();
         while (Math.random() < 10) {
-
-            
-
           //  this.sourceMsgQueue.drainTo(currentMsg, this.size-currentMsg.size()); //Put (and remove) at maximum this.size elements into currentMsg
             int itemNeeded = this.size - currentMsg.size();
             if (itemNeeded > 0) //If I need other elements...
@@ -108,14 +110,14 @@ public abstract class OperatorType {
 
             float result = this.operationType(currentMsg.stream().map(DataKey::getValue).collect(Collectors.toList()));
             //todo aggiungere chiave
-            DataKey messageData = new DataKey(result, "chiave");
+            String keyString = currentMsg.stream().map(d->d.decodeKey()).reduce("", String::concat);
+            DataKey messageData = new DataKey(result, keyString);
             currentMsg.forEach(msg->currentMessageRecoveryManager.appendData(msg));
-            
-            
-           
+
             executorService.submit(() -> sendMessage(messageData));
-            
+            Debug.printVerbose("Hello from Op type A");
             waitForEverySocketToSaveMessageInHisFile(messageData);
+            Debug.printVerbose("Hello from Op type B");
             for(int i=0;i<this.slide;i++)
             {
             	DataKey d= currentMsg.remove(0);
@@ -127,10 +129,6 @@ public abstract class OperatorType {
 
   
     
-    /**
-     * This is the port from which the input arrives.
-     */
-    private Position ownPort;   //TODO come attributo source ???
 
     /***
      * Deploy the task on the operator
@@ -154,7 +152,8 @@ public abstract class OperatorType {
                         Socket socket = new Socket(socketRepr.getAddress(), socketRepr.getPort());
                         OutputToSocket outputToSocket = new OutputToSocket(socket);
                         this.destination.add(outputToSocket);
-                        keepLooping = false;
+                        //todo: check
+                        // keepLooping = false;
 
                     } catch (IOException e) {
                         //TODO Il socket in output (quindi l'altro operatore) non è pronto. Dovrei ciclare?
@@ -180,7 +179,8 @@ public abstract class OperatorType {
         }
         else{       //Deploy input socket
             try {
-				//ServerSocket serverSocket=new ServerSocket(ownPort.getPort());
+				Debug.printVerbose("Inside second operator");
+
                 ServerSocket serverSocket=new ServerSocket(source.getPort());
                 executorService.submit(this::execute);
 				while(true)
@@ -188,27 +188,24 @@ public abstract class OperatorType {
                     Debug.printDebug("Start accepting new incoming connections!");
                     Socket socket=serverSocket.accept();
 					Debug.printDebug("A new socket input!");
-					InputFromSocket receiver=new InputFromSocket(socket, ownPort);
+					InputFromSocket receiver=new InputFromSocket(socket, source);
 					executorService.submit(()->receiver.startReceiving(this));
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
 			}
         }
 
     }
 
-    public Position getOwnPort() {
-        return ownPort;
-    }
 
     public void addToMessageQueue(DataKey messageData)
     {
         try {
             this.sourceMsgQueue.put(messageData);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Debug.printError(e);
         }
     }
 
@@ -242,6 +239,8 @@ public abstract class OperatorType {
     		try {
     			while(socketsThatHaveStoredCurrentMessage.size()<this.destination.size())
     	    	{
+    	    	        Debug.printVerbose(socketsThatHaveStoredCurrentMessage.toString());
+    	    	        Debug.printVerbose(destination.toString());
     	    			socketsThatHaveStoredCurrentMessage.wait();
     	    	}
     	
@@ -249,5 +248,12 @@ public abstract class OperatorType {
 				Debug.printDebug(e);
 			}
     	}
+    }
+
+    public void pushOperatorToQueue(OperatorOutputQueue operator){
+        this.socketsThatHaveStoredCurrentMessage.add(operator);
+        synchronized (socketsThatHaveStoredCurrentMessage){
+            socketsThatHaveStoredCurrentMessage.notify();
+        }
     }
 }

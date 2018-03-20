@@ -26,9 +26,24 @@ public class RecoveryManager {
 	
 	public RecoveryManager(String destinationFile)
 	{
+	    Debug.printVerbose("Creando il file...");
 		this.destinationFile=destinationFile;
+		this.createNewFile(this.destinationFile);
 	}
-	
+
+	private void createNewFile(String destinationFile){
+
+	    File f = new File(destinationFile);
+        if(!f.exists())
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                Debug.printError(e);
+            }
+        else
+            Debug.printVerbose("File already exists");
+    }
+
 	public void appendData(DataKey elem)
 	{
 		appendDataInFileList(destinationFile, elem);
@@ -57,6 +72,7 @@ public class RecoveryManager {
         try
         {
             FileReader fr=new FileReader(fileName);
+
             BufferedReader br=new BufferedReader(fr);
 
             while((s=br.readLine())!=null)

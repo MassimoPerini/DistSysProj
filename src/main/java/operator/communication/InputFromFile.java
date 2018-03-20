@@ -14,10 +14,11 @@ import java.io.FileReader;
 public class InputFromFile implements OperatorInputQueue{
 
     private final String path;
-
+    private int conta;
     public InputFromFile(String path)
     {
         this.path = path;
+        this.conta = 0;
     }
 
     @Override
@@ -29,10 +30,12 @@ public class InputFromFile implements OperatorInputQueue{
             String readLine = "";
             Debug.printVerbose("Reading file using Buffered Reader");
             while ((readLine = b.readLine()) != null) {
-                //todo: set key
-                DataKey messageData = new DataKey(Double.parseDouble(readLine), "key");
+                StringBuilder stringBuilder = new StringBuilder("file");
+                stringBuilder.append(++conta);
+                DataKey messageData = new DataKey(Double.parseDouble(readLine), stringBuilder.toString());
                 operatorType.addToMessageQueue(messageData);
-                Thread.sleep((long)(Math.random()*2000));
+                Debug.printVerbose("Printo" + this.conta);
+                //Thread.sleep((long)(Math.random()*2000));
             }
         }
         catch (Exception e)

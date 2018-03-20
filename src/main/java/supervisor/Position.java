@@ -13,42 +13,42 @@ public class Position implements Serializable{
 	/**
 	 * The machine where this position lives
 	 */
-	private String ipAddress;
+	private final String ipAddress;
 	/**
 	 * This number is the index of the position in the machine
 	 */
-	private int positionInMachine;
+	//private final int positionInMachine;
 	
-	private int port;
-	
+	private final int port;
+
 	public Position(String ipAddress, int i) {
 		this.ipAddress=ipAddress;
-		this.positionInMachine=i;
+		this.port=i;
+		//this is a random index
+		//this.positionInMachine = 1;
 	}
 
+	/*
 	public Position(String ipAddress, int port, int i) {
 		this.ipAddress=ipAddress;
 		this.port = port;
 		this.positionInMachine=i;
-	}
-	//TODO
-	public Position(SocketRepr repr)
-	{
-		
-	}
+	}*/
+
 	public String getAddress() {
 		return ipAddress;
 	}
-	public void setAddress(String ipAddress) {
-		this.ipAddress = ipAddress;
-	}
-	public int getPositionInMachine() {
+
+	/*public int getPositionInMachine() {
 		return positionInMachine;
 	}
-	public void setPositionInMachine(int positionInMachine) {
-		this.positionInMachine = positionInMachine;
-	}
+	*/
 	public int getPort() {
 		return port;
+	}
+
+	@Override
+	public String toString() {
+		return  this.ipAddress + this.port;
 	}
 }

@@ -43,9 +43,12 @@ public class InputFromSocket implements OperatorInputQueue{
 		this.inputSocket=socket;
         this.socketOut = (new ObjectOutputStream(this.inputSocket.getOutputStream()));
 		this.socketIn = (new ObjectInputStream(this.inputSocket.getInputStream()));
-		//todo: senti fulvio chiedendogli cose
-		this.manager = new RecoveryManager(ownPosition.toString()
-				+ socket.getLocalAddress().toString()+ socket.getLocalPort() + "arrival.txt");
+		Debug.printError("Own" + ownPosition.toString());
+		Debug.printError("Sec" + new Position(socket.getInetAddress().getHostAddress(), socket.getPort()).toString());
+
+		this.manager = new RecoveryManager(ownPosition.toString() +
+				new Position(socket.getInetAddress().getHostAddress(), socket.getPort()).toString() + ".txt");
+
 
 		//TODO PERCHE'?
 		/*
