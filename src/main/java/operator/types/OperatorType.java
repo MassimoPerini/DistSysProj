@@ -42,6 +42,7 @@ public abstract class OperatorType {
     final int slide;
     private @Nullable Position source;
     private transient @NotNull List<OperatorOutputQueue> destination;
+    //che fa socket description?
     private final @NotNull List<Position> socketDescription;
     private transient ExecutorService executorService;
     private transient BlockingQueue<DataKey> sourceMsgQueue; //messaggi input -> processo
@@ -90,11 +91,13 @@ public abstract class OperatorType {
     
     public void execute() {
         //this condition is a while true loop
-    	List<DataKey> currentMsg = new LinkedList<>();
-        while (Math.random() < 10) {
-          //  this.sourceMsgQueue.drainTo(currentMsg, this.size-currentMsg.size()); //Put (and remove) at maximum this.size elements into currentMsg
+    	while (Math.random() < 10) {
+            List<DataKey> currentMsg = new LinkedList<>();
+            //Put (and remove) at maximum this.size elements into currentMsg
+            this.sourceMsgQueue.drainTo(currentMsg, this.size);
             int itemNeeded = this.size - currentMsg.size();
-            if (itemNeeded > 0) //If I need other elements...
+            //i take n elements from the Queue
+            if (itemNeeded > 0)
             {
                 for (int i = 0; i < itemNeeded; i++) {
                     try {
@@ -109,20 +112,20 @@ public abstract class OperatorType {
             Debug.printVerbose("Starting elaboration of "+currentMsg.size()+" elements");
 
             float result = this.operationType(currentMsg.stream().map(DataKey::getValue).collect(Collectors.toList()));
-            //todo aggiungere chiave
             String keyString = currentMsg.stream().map(d->d.decodeKey()).reduce("", String::concat);
             DataKey messageData = new DataKey(result, keyString);
+            //aggiungo i dati al recovery manager
             currentMsg.forEach(msg->currentMessageRecoveryManager.appendData(msg));
 
             executorService.submit(() -> sendMessage(messageData));
-            Debug.printVerbose("Hello from Op type A");
-            waitForEverySocketToSaveMessageInHisFile(messageData);
-            Debug.printVerbose("Hello from Op type B");
+
+            //waitForEverySocketToSaveMessageInHisFile(messageData);
+            /*
             for(int i=0;i<this.slide;i++)
             {
             	DataKey d= currentMsg.remove(0);
             	currentMessageRecoveryManager.removeDataFromList(d);
-            }
+            }*/
         }
     }
      protected abstract float operationType(List<Float> streamDatas);
@@ -140,8 +143,8 @@ public abstract class OperatorType {
         this.destination = new LinkedList<>();
         if (socketDescription.size() == 0)
         {
+            //If there's no socket description it means it is a leaf and we need to write on file the result
             this.destination.add(new OutputToFile());   //No socket output -> write on file
-
         }
         else
         {
@@ -152,8 +155,7 @@ public abstract class OperatorType {
                         Socket socket = new Socket(socketRepr.getAddress(), socketRepr.getPort());
                         OutputToSocket outputToSocket = new OutputToSocket(socket);
                         this.destination.add(outputToSocket);
-                        //todo: check
-                        // keepLooping = false;
+                        keepLooping = false;
 
                     } catch (IOException e) {
                         //TODO Il socket in output (quindi l'altro operatore) non è pronto. Dovrei ciclare?
@@ -212,11 +214,12 @@ public abstract class OperatorType {
     private void sendMessage(DataKey messageData)
     {
         for (OperatorOutputQueue operatorOutputQueue : destination) {
+            Debug.printVerbose(destination.toString());
             operatorOutputQueue.send(messageData);
-            socketsThatHaveStoredCurrentMessage.add(operatorOutputQueue);
+            /*socketsThatHaveStoredCurrentMessage.add(operatorOutputQueue);
             synchronized (operatorOutputQueue) {
-            	operatorOutputQueue.notify();
-			}
+            	operatorOutputQueue.notifyAll();
+			}*/
         }
         //TODO output the message (a new thread wants to send this message)
     }

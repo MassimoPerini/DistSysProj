@@ -47,13 +47,8 @@ public class OutputToSocket implements OperatorOutputQueue{
         while(true)
         {
             try {
-                Debug.printVerbose("Hello keepSending");
                 DataKey messageData = this.messageData.take();
                 Debug.printVerbose("operator queue out Socket sending....");
-
-                synchronized (messageData){
-                    messageData.notifyAll();
-                }
 
                 this.socketOut.writeObject(messageData);
                 this.socketOut.flush();
