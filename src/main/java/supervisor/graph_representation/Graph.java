@@ -13,9 +13,10 @@ public class Graph<T> {
 	public static final int DISCOVERED=20;
 	public static final int UNKNOWN=10;
 	public static final int FINISHED=30;
-	
+
+
 	//vertices
-	private Map<Integer, Vertex<T>> vertices;
+	private TreeMap<Integer, Vertex<T>> vertices;
 	
 	public Graph()
 	{

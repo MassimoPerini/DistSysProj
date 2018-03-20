@@ -79,6 +79,4 @@ public class InputFromSocket implements OperatorInputQueue{
 			}
 		}
 	}
-	
-	
 }

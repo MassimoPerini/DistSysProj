@@ -19,11 +19,13 @@ public class Vertex<T> implements Comparable<Vertex<T>>{
 	{
 		this.id=id;
 		this.neighbours=new TreeMap<>();
+		this.data = data;
 	}
 	public Vertex(Vertex<T> vertex)
 	{
 		this.id=vertex.id;
 		this.neighbours=new TreeMap<>(vertex.neighbours);
+		this.data = vertex.getData();
 	}
 	
 	public void addNeighbour(int id,double cost)

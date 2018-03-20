@@ -49,7 +49,7 @@ public class SocketListener{
                 TaskSocket taskSocket = new TaskSocket(inputSocket);
                 NodeSocket nodeSocket = new NodeSocket(taskSocket);
                 this.socketManager.addSocket(nodeSocket);
-
+                /*
                 //TODO SPOSTARE QUESTA PARTE
                 i++;
 
@@ -68,7 +68,7 @@ public class SocketListener{
                     //source, destination
                     OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2, null, outSocket),"");//TODO trovare qualche metodo migliore di passare il JAR
                     this.socketManager.deployNewOperator(0, operatorDeployment);
-                }
+                }*/
 
 
             }

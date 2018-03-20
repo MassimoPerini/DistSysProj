@@ -22,6 +22,6 @@ public class MainSupervisor {
         
         ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(socketListener::run);
-        executorService.submit(graphDeployer::run);
+        executorService.submit(graphDeployer);
     }
 }

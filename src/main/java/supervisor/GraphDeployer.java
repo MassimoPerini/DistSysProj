@@ -81,10 +81,12 @@ public class GraphDeployer implements Runnable{
 		}
 		//Reverses the topological order to simplify forward star implementation
 		Collections.reverse(graph);
+		int position = 0;
 		for(Vertex<OperatorDeployment> curr:graph)
 		{
-			int position=new Random().nextInt(this.socketManager.getNumberOfCurrentlyConnectedDaemons());
 			this.socketManager.deployNewOperator(position, curr.getData());
+			position++;
+			//int position=new Random().nextInt(this.socketManager.getNumberOfCurrentlyConnectedDaemons());
 		}
 	}
 
