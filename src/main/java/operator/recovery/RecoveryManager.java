@@ -33,11 +33,11 @@ public class RecoveryManager {
 	{
 		appendDataInFileList(destinationFile, elem);
 	}
-	
+	/*
 	public void appendData(MessageData elem)
 	{
 		appendData(new DataKey(elem));
-	}
+	}*/
 	
 	
     /**
@@ -216,10 +216,6 @@ public class RecoveryManager {
 
     }
 
-	public void removeDataFromList(MessageData d) 
-	{
-		removeDataFromList(new DataKey(d));
-	}
 
 
 }

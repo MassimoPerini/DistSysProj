@@ -36,11 +36,11 @@ public class DataKey implements Serializable{
      * Create a datakey similar to the given messagedata (ie same value, same counter)
      * @param elem
      */
-    public DataKey(MessageData elem) {
+    /*public DataKey(MessageData elem) {
 		this.data=(float)elem.getValue();
 		this.progressiveKey=""+elem.getCounter();
 	}
-
+    */
 
 	public float getData() {
 
