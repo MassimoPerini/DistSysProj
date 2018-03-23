@@ -13,6 +13,11 @@ import supervisor.communication.message.OperatorDeployment;
 import supervisor.graph_representation.Graph;
 import supervisor.graph_representation.Vertex;
 import utils.Debug;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,7 +64,15 @@ public class InputMakerJSON {
 
         Type fooType = new TypeToken<Graph<OperatorDeployment>>() {}.getType();
         String output = writeGson.toJson(g, fooType);
-        Debug.printVerbose(output);
+        //Debug.printVerbose(output);
+        try {
+            String fileName = "graphDeployInput.json";
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+            writer.write(output);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         Graph<OperatorDeployment> graph = new Gson().fromJson(output, fooType);
 

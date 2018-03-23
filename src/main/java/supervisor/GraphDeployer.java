@@ -1,6 +1,10 @@
 package supervisor;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.Buffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -43,29 +47,79 @@ public class GraphDeployer implements Runnable{
 	 */
 	@Override
 	public void run() {
-        Scanner scanner=new Scanner(System.in);
-        Debug.printVerbose("Waiting for JSON input");
-        String iString= scanner.nextLine();
-		Debug.printVerbose("JSON received");
-		Type fooType = new TypeToken<Graph<OperatorDeployment>>() {}.getType();
-		Debug.printVerbose("Token generated");
-		Graph<OperatorDeployment> graph= new Gson().fromJson(iString, fooType);
-		Debug.printVerbose("GSON processed" + graph.toString());
-		List<Vertex<OperatorDeployment>> sortedGraph=graph.topologicalSort();
-        if(sortedGraph!=null)
-        {
-        	try {
-				deploy(sortedGraph);
-				Debug.printVerbose("Deployed sorted graph");
-			} catch (NoDaemonAvailableException e) {
-				Debug.printError("No daemon is currently available");
+        String FILENAME = "graphDeployInput.json";
+		FileReader fr = null;
+		BufferedReader br  = null;
+		StringBuilder inputGraphDeploy = new StringBuilder();
+		try {
+
+			//br = new BufferedReader(new FileReader(FILENAME));
+			fr = new FileReader(FILENAME);
+			br = new BufferedReader(fr);
+
+			String sCurrentLine;
+			while ((sCurrentLine = br.readLine()) != null) {
+				inputGraphDeploy.append(sCurrentLine);
 			}
-        }
-        else
-        {
-        	Debug.printError("Cyclic graph");
-        }
-		scanner.close();
+			Debug.printVerbose(inputGraphDeploy.toString());
+		} catch (IOException e) {
+
+			e.printStackTrace();
+
+		} finally {
+
+			try {
+
+				if (br != null)
+					br.close();
+
+				if (fr != null)
+					fr.close();
+
+			} catch (IOException ex) {
+
+				ex.printStackTrace();
+
+			}
+
+		}
+
+
+
+		//Scanner scanner=new Scanner(System.in);
+		Debug.printVerbose("Waiting for JSON input");
+        //String iString= scanner.nextLine();
+		String iString = inputGraphDeploy.toString();
+		if(iString != null) {
+			Debug.printVerbose("JSON received");
+			Type fooType = new TypeToken<Graph<OperatorDeployment>>() {
+			}.getType();
+			Debug.printVerbose("Token generated");
+			Graph<OperatorDeployment> graph = new Gson().fromJson(iString, fooType);
+			Debug.printVerbose("GSON processed" + graph.toString());
+			List<Vertex<OperatorDeployment>> sortedGraph = graph.topologicalSort();
+			if (sortedGraph != null) {
+				try {
+					deploy(sortedGraph);
+					Debug.printVerbose("Deployed sorted graph");
+				} catch (NoDaemonAvailableException e) {
+					try {
+						Debug.printError("No daemon is currently available, waiting for 10 seconds in order to receiver all daemons");
+						/*Thread.sleep((long) (10000));
+						deploy(sortedGraph);*/
+					}catch(Exception err){
+						Debug.printError("Either no daemons available or sleep crashed",err);
+					}
+				}
+
+			} else {
+				Debug.printError("Cyclic graph");
+			}
+			//scanner.close();*/
+		}
+		else{
+			Debug.printError("Failed to read from file, iString is null");
+		}
 	}
 	
 	/**
@@ -75,9 +129,19 @@ public class GraphDeployer implements Runnable{
 	 */
 	public void deploy (List<Vertex<OperatorDeployment>> graph) throws NoDaemonAvailableException
 	{
+		/*
 		if(this.socketManager.getNumberOfCurrentlyConnectedDaemons()==0)
 		{
 			throw new NoDaemonAvailableException(); 
+		}*/
+		//We could wait here for all the daemons...
+		while(this.socketManager.getNumberOfCurrentlyConnectedDaemons() < graph.size()){
+			Debug.printError("Not enough daemons are currently available, waiting for 2 seconds in order to receiver all daemons");
+			try {
+				Thread.sleep((long) (2000));
+			} catch (InterruptedException e) {
+				Debug.printError(e);
+			}
 		}
 		//Reverses the topological order to simplify forward star implementation
 		Collections.reverse(graph);

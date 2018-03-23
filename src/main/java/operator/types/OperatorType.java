@@ -119,8 +119,8 @@ public abstract class OperatorType {
 
             executorService.submit(() -> sendMessage(messageData));
 
-            //waitForEverySocketToSaveMessageInHisFile(messageData);
-            /*
+            /*waitForEverySocketToSaveMessageInHisFile(messageData);
+
             for(int i=0;i<this.slide;i++)
             {
             	DataKey d= currentMsg.remove(0);
