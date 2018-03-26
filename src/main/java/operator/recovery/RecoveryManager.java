@@ -72,7 +72,7 @@ public class RecoveryManager {
         try
         {
             FileReader fr=new FileReader(fileName);
-
+            Debug.printDebug("Reading json from file: "+fileName);
             BufferedReader br=new BufferedReader(fr);
 
             while((s=br.readLine())!=null)
@@ -86,7 +86,7 @@ public class RecoveryManager {
                 //i check if dataKey isn't already in the file
                 for (DataKey data : datas) {
                     //TODO: do we want to handle diffrently?
-                    if(data.getData() == dataKey.getData() && data.getProgressiveKey().equals(dataKey.getProgressiveKey())){
+                    if(data.equals(dataKey)){
                         return;
                     }
 

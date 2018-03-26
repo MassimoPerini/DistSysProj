@@ -21,6 +21,7 @@ import operator.communication.OutputToSocket;
 import operator.communication.InputFromFile;
 import operator.communication.message.MessageData;
 import operator.recovery.DataKey;
+import operator.recovery.Key;
 import operator.recovery.RecoveryManager;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,9 @@ public abstract class OperatorType {
 
     final int size;
     final int slide;
+    
+    private int sequenceNumber;
+    
     private @Nullable Position source;
     private transient @NotNull List<OperatorOutputQueue> destination;
     //che fa socket description?
@@ -112,8 +116,9 @@ public abstract class OperatorType {
             Debug.printVerbose("Starting elaboration of "+currentMsg.size()+" elements");
 
             float result = this.operationType(currentMsg.stream().map(DataKey::getValue).collect(Collectors.toList()));
-            String keyString = currentMsg.stream().map(d->d.decodeKey()).reduce("", String::concat);
-            DataKey messageData = new DataKey(result, keyString);
+            List<Key> senders=currentMsg.stream().map(dk->dk.getAggregator()).collect(Collectors.toList());
+            
+           DataKey messageData = new DataKey(result, new Key(this.source, ++sequenceNumber),senders);
             //aggiungo i dati al recovery manager
             currentMsg.forEach(msg->currentMessageRecoveryManager.appendData(msg));
 

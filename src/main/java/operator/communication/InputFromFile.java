@@ -1,6 +1,7 @@
 package operator.communication;
 
 import operator.recovery.DataKey;
+import operator.recovery.Key;
 import operator.types.OperatorType;
 import utils.Debug;
 
@@ -30,9 +31,9 @@ public class InputFromFile implements OperatorInputQueue{
             String readLine = "";
             Debug.printVerbose("Reading file using Buffered Reader");
             while ((readLine = b.readLine()) != null) {
-                StringBuilder stringBuilder = new StringBuilder("file");
-                stringBuilder.append(++conta);
-                DataKey messageData = new DataKey(Double.parseDouble(readLine), stringBuilder.toString());
+
+            	Key sender=new Key(null, ++conta);
+            	DataKey messageData = new DataKey(Double.parseDouble(readLine), sender,null);
                 operatorType.addToMessageQueue(messageData);
                 Debug.printVerbose("Printo" + this.conta);
                 //Thread.sleep((long)(Math.random()*2000));

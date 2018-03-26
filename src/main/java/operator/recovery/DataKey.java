@@ -4,43 +4,39 @@ import operator.communication.message.MessageData;
 import supervisor.Position;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.print.attribute.standard.MediaSize.Other;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by higla on 24/02/2018.
  */
 public class DataKey implements Serializable{
 
-    private float data;
-    private String progressiveKey;
-    //todo: probabilmente eliminare - non ha senso inviarlo via socket tant'è che è transient
-    private transient Position senderPosition;
+    private static final long serialVersionUID = -189729754032863167L;
+	
+	
+	private float data;
+	/**
+	 * id+ sequence number of the node which created the message eg a sum (id 13, s.n. 4) receives 2,4. 
+	 * The new data key will bear 13 as id, 5 as sequence number   
+	 */
+    private Key aggregator;
+    private List<Key> sources;
     
-    // we assume that the key is given
-    /*public DataKey(float data, String progressiveKey) {
 
-        this.data = data;
-        this.progressiveKey = progressiveKey;
-    }*/
-    public DataKey(double data, String progressiveKey) {
-
+    public DataKey(double data,Key aggregator,@Nullable List<Key> sources) {
         this.data = (float)data;
-        this.progressiveKey = progressiveKey;
+        this.aggregator=aggregator;
+        if(sources!=null)
+        	this.sources=new ArrayList<>(sources);
     }
-    /*
-    public DataKey(){
 
-    }
-    */
     
-    /**
-     * Create a datakey similar to the given messagedata (ie same value, same counter)
-     * @param
-     */
-    /*public DataKey(MessageData elem) {
-		this.data=(float)elem.getValue();
-		this.progressiveKey=""+elem.getCounter();
-	}
-    */
+   
 
 	public float getData() {
 
@@ -55,29 +51,20 @@ public class DataKey implements Serializable{
         this.data = data;
     }
 
-    public String getProgressiveKey() {
-        return progressiveKey;
-    }
 
 
-
-	public Position getSenderPosition() {
-		return senderPosition;
-	}
-
-
-	public void setSenderPosition(Position senderPosition) {
-		this.senderPosition = senderPosition;
-	}
 
     /**
-     * this method checks if
-     * @param key is equal to a string
-     * @return true if it equal
+     * Used in OperatorType to list the not-yet-aggregated information
+     * @return id+ sequence number of the node which created the message (see definition)
      */
-	private boolean checkEqualKey(String key){
-        return(this.progressiveKey.equals(key));
+    public Key getAggregator()
+    {
+    	return aggregator;
     }
+
+
+
 
     /**
      * this method checks if
@@ -95,23 +82,23 @@ public class DataKey implements Serializable{
      */
     public boolean checkSameData(DataKey dataKey)
     {
-        return checkEqualKey(dataKey.getProgressiveKey()) && checkEqualValue(dataKey.getData());
+        return dataKey.aggregator==this.aggregator&& checkEqualValue(dataKey.getData());
     }
 
     @Override
     public String toString() {
         return "DataKey{" +
                 "data=" + data +
-                ", progressiveKey='" + progressiveKey + '\'' +
-                ", senderPosition=" + senderPosition +
+                ", progressiveKey='" + aggregator + '\'' +
+       ", sources='" + sources + '\'' +
+       
                 '}';
     }
-
-    /**
-     * this method is used to decode the key
-     * @return a String for the central file
-     */
-    public String decodeKey(){
-        return this.getValue() + this.getProgressiveKey();
+    
+    public boolean equals(DataKey key)
+    {
+    	if(this.aggregator!=null)
+    		return this.aggregator.equals(key.aggregator);
+    	else return key.aggregator==null;
     }
 }

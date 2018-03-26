@@ -5,6 +5,7 @@ import operator.communication.message.MessageOperator;
 import operator.recovery.DataKey;
 import utils.Debug;
 
+import java.io.FileWriter;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +37,10 @@ public class OutputToFile implements OperatorOutputQueue {
                 DataKey msg = this.messageData.take();
 
                 Debug.printVerbose("WRITING " + msg);
+                FileWriter fileWriter=new FileWriter("output.txt");
+                fileWriter.write(msg.getData()+"");
+                fileWriter.flush();
+                
             }
         }catch (Exception e)
         {
