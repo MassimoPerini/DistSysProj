@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -47,10 +49,14 @@ public abstract class OperatorType {
     private @Nullable Position source;
     private transient @NotNull List<OperatorOutputQueue> destination;
     //che fa socket description?
-    private final @NotNull List<Position> socketDescription;
+    private final @NotNull List<Position> messageAddressees;
     private transient ExecutorService executorService;
+    
     private transient BlockingQueue<DataKey> sourceMsgQueue; //messaggi input -> processo
-
+   
+    
+    private Map<Position, InputFromSocket> dataSenders;
+    
     /**
      * This object is necessary to store the message being sent now.
      * After the message is stored by all the output queues, this very object is used to delete it.
@@ -61,20 +67,15 @@ public abstract class OperatorType {
      */
     private Set<OperatorOutputQueue> socketsThatHaveStoredCurrentMessage;
     
-    public OperatorType(@NotNull List<Position> destination, int size, int slide)
-    {
-        this.socketDescription = destination;
-        this.size = size;
-        this.slide = slide;
-        recoverySetup();
-    }
+
 
     public OperatorType(@NotNull List<Position> destination, int size, int slide, @Nullable Position socket)
     {
-        this.socketDescription = destination;
+        this.messageAddressees = destination;
         this.size = size;
         this.slide = slide;
         this.source = socket;
+        dataSenders=new HashMap<>();
         recoverySetup();
     }
     
@@ -146,14 +147,14 @@ public abstract class OperatorType {
         this.sourceMsgQueue = new LinkedBlockingQueue<>();
         executorService = Executors.newCachedThreadPool();
         this.destination = new LinkedList<>();
-        if (socketDescription.size() == 0)
+        if (messageAddressees.isEmpty())
         {
             //If there's no socket description it means it is a leaf and we need to write on file the result
             this.destination.add(new OutputToFile());   //No socket output -> write on file
         }
         else
         {
-            for (Position socketRepr : socketDescription) {
+            for (Position socketRepr : messageAddressees) {
                 boolean keepLooping = false;
                 do {
                     try {
@@ -229,6 +230,12 @@ public abstract class OperatorType {
         //TODO output the message (a new thread wants to send this message)
     }
 
+    
+    public void addDataSender(Position position,InputFromSocket socket)
+    {
+    	this.dataSenders.put(position, socket);
+    }
+    
     public int getSize()
     {
         return this.size;
