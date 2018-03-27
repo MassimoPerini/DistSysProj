@@ -1,1 +1,0 @@
-[{"data":2.0,"aggregator":{"sequenceNumber":1},"sources":[{"sequenceNumber":1},{"sequenceNumber":2}]},{"data":2.0,"aggregator":{"sequenceNumber":2},"sources":[{"sequenceNumber":3},{"sequenceNumber":4}]},{"data":2.0,"aggregator":{"sequenceNumber":3},"sources":[{"sequenceNumber":5},{"sequenceNumber":6}]}]

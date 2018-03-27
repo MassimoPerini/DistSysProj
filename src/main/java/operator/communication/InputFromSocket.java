@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.Vector;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import operator.communication.OperatorInputQueue;
 import operator.communication.message.MessageData;
@@ -25,15 +28,10 @@ public class InputFromSocket implements OperatorInputQueue{
 	private final Socket inputSocket;
 	private final ObjectInputStream socketIn;
 	private final ObjectOutputStream socketOut;
-
-	/**
-	 * This object is used to interact with the storage
-	 */
-	private RecoveryManager manager;
-
-	private OperatorType addressee;
+	private final BlockingQueue<Ack> acksToSend;
 	
-	private final Position position;
+
+	
 	/**
 	 * Read elements from the given socket and push them to the file with given name
 	 * @param socket it's the source of the data
@@ -44,39 +42,46 @@ public class InputFromSocket implements OperatorInputQueue{
         this.socketOut = (new ObjectOutputStream(this.inputSocket.getOutputStream()));
 		this.socketIn = (new ObjectInputStream(this.inputSocket.getInputStream()));
 
-		this.manager = new RecoveryManager(ownPosition.toString() +
-				new Position(socket.getInetAddress().getHostAddress(), socket.getPort()).toString() + ".txt");
-
-
-		//TODO PERCHE'?
-		/*
-		this.manager=null;*/
-		//serve?
-		this.position=ownPosition;
+	
+		acksToSend=new LinkedBlockingQueue<>();
 	}
 
 	@Override
 	public void startReceiving(OperatorType operatorType) {
-		this.addressee=operatorType;
+		new Thread(this::keepSendingAcksWhenReady).start();
 		while(true)
 		{
+			
 			try {
 
 				DataKey messageData = (DataKey) this.socketIn.readObject();
 				operatorType.addToMessageQueue(messageData);
 				Debug.printVerbose("Received "+ messageData);
-
-				/*
-				if(this.manager==null)		//TODO non è meglio metterlo nel costruttore?
-					this.manager=new RecoveryManager(position.toString()+number.getSenderPosition().toString()+"arrival.txt");
-
-				*/
-				manager.appendData(messageData);
 			} catch (IOException e) {
 				Debug.printError(e);
 			} catch (ClassNotFoundException e) {
 				Debug.printError(e);
 			}
+		}
+	}
+	
+	public void sendAck(Ack ack)
+	{
+		try {
+			acksToSend.put(ack);
+		} catch (InterruptedException e) {
+			Debug.printError(e);
+		}
+	}
+	
+	public void keepSendingAcksWhenReady()
+	{
+		try {
+			socketOut.writeObject(acksToSend.take());
+		} catch (IOException e) {
+			Debug.printError(e);
+		} catch (InterruptedException e) {
+			Debug.printError(e);
 		}
 	}
 }
