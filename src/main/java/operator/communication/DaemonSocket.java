@@ -17,6 +17,10 @@ import java.util.concurrent.Executors;
 
 /**
  * Created by massimo on 10/02/18.
+ * This class it's the deamonSocket.
+ * Once it is is started, it receives a gson with the type of the operations
+ * and spawns a new Operator
+ * todo: MessageSupervisor should also be used to communicate an HeatbeatRequest, under the assumption that nodes don't fall
  */
 public class DaemonSocket {
 
@@ -46,7 +50,9 @@ public class DaemonSocket {
 
     }
 
-
+    /**
+     * This method is called from the MainDaemon class as soon as it is created.
+     */
     public void start()
     {
         try {
@@ -58,6 +64,11 @@ public class DaemonSocket {
         }
     }
 
+    /**
+     * This method either allow the Daemon to submit a thread to:
+     * 1) Spawn a new Operator
+     * todo: 2) Listen for the heartbeat
+     */
     private void listen() {
         String input;
         Debug.printVerbose("node Socket receiving....");

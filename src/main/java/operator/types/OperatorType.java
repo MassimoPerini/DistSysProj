@@ -140,23 +140,29 @@ public abstract class OperatorType {
     
 
     /***
-     * Deploy the task on the operator
+     * Deploy the task on the operator.
+     * This method is called by the ProcessOperator after an operation has been assigned by the MainSupervisor
      */
     public void deploy()
     {
         this.sourceMsgQueue = new LinkedBlockingQueue<>();
         executorService = Executors.newCachedThreadPool();
         this.destination = new LinkedList<>();
+
+        //We check if there's no socket description.
+        //In case, it means the node is a leaf and we need to write on file the result
         if (messageAddressees.isEmpty())
         {
-            //If there's no socket description it means it is a leaf and we need to write on file the result
-            this.destination.add(new OutputToFile());   //No socket output -> write on file
+            //No socket output -> write on file
+            this.destination.add(new OutputToFile());
         }
         else
         {
+            //this node isn't a leaf so we send to all sockets we've collected our result
             for (Position socketRepr : messageAddressees) {
                 boolean keepLooping = false;
                 do {
+                    //for all position we try to open a new socket
                     try {
                         Socket socket = new Socket(socketRepr.getAddress(), socketRepr.getPort());
                         OutputToSocket outputToSocket = new OutputToSocket(socket);
@@ -165,6 +171,10 @@ public abstract class OperatorType {
 
                     } catch (IOException e) {
                         //TODO Il socket in output (quindi l'altro operatore) non è pronto. Dovrei ciclare?
+                        /*Todo:
+                        // Solution: in teoria, sia per come viene deployato il grafo, sia per l'assunzione di input
+                        dovrebbe essere già a posto, e non esserci il problema.. Parliamone
+                        N.B. Runnandolo una volta mi ha dato errore, riavviandolo non più*/
                         Debug.printDebug(e);
                         Debug.printDebug("I can't establish connection to the other node input!!!!");
                         keepLooping = true;
@@ -173,10 +183,16 @@ public abstract class OperatorType {
             }
         }
 
+        //todo: è corretta questa cosa?
+        //Ciclo creando una coda di output per ogni destination
         for (OperatorOutputQueue operatorOutputQueue : destination) {
-            operatorOutputQueue.start();    //Starting output threads
+            //Starting output threads
+            operatorOutputQueue.start();
         }
 
+        //If source == null it means this is the first node of the graph, and needs to read datas from a file
+        //A possible modification could be having an operator spawned automatically and let it handle this thing,
+        //for now we assume that the user gives us a well-formed input
         if (source == null)
         {
             InputFromFile inputFromFile = new InputFromFile("src/main/resources/input.txt");
@@ -185,12 +201,14 @@ public abstract class OperatorType {
             this.execute();
             //executorService.submit(this::execute);            WHY???
         }
-        else{       //Deploy input socket
+        else{
+            //Deploy input from socket. I create a new ServerSocket
             try {
 				Debug.printVerbose("Inside second operator");
 
-                ServerSocket serverSocket=new ServerSocket(source.getPort());
+                ServerSocket serverSocket= new ServerSocket(source.getPort());
                 executorService.submit(this::execute);
+                //i listen for all DataKey coming from the previous node.
 				while(true)
 				{
                     Debug.printDebug("Start accepting new incoming connections!");
