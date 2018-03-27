@@ -5,6 +5,7 @@ import java.net.InetAddress;
 /**
  * Created by massimo on 02/03/18.
  */
+@Deprecated
 public class SocketRepr {
     /*
     private InetAddress address;

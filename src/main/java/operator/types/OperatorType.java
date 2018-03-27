@@ -53,13 +53,13 @@ public abstract class OperatorType {
 
     /**
      * This object is necessary to store the message being sent now.
-     * After the message is stored by all the output queues, this very object is used to delete it.
+     * After the message is Sent by all the output queues, this very object is used to delete it.
      */
     private RecoveryManager currentMessageRecoveryManager;
     /**
-     * This set contains all the output queues that have stored/sent the message
+     * This set contains all the output queues that have Sent/sent the message
      */
-    private Set<OperatorOutputQueue> socketsThatHaveStoredCurrentMessage;
+    private Set<OperatorOutputQueue> socketsThatHaveSentCurrentMessage;
     
     public OperatorType(@NotNull List<Position> destination, int size, int slide)
     {
@@ -89,7 +89,7 @@ public abstract class OperatorType {
             this.currentMessageRecoveryManager =
                     new RecoveryManager("output_handler_recovery" + source.toString());
         }
-        this.socketsThatHaveStoredCurrentMessage=Collections.synchronizedSet(new HashSet<>());
+        this.socketsThatHaveSentCurrentMessage=Collections.synchronizedSet(new HashSet<>());
     }
     
     
@@ -221,10 +221,7 @@ public abstract class OperatorType {
         for (OperatorOutputQueue operatorOutputQueue : destination) {
             Debug.printVerbose(destination.toString());
             operatorOutputQueue.send(messageData);
-            /*socketsThatHaveStoredCurrentMessage.add(operatorOutputQueue);
-            synchronized (operatorOutputQueue) {
-            	operatorOutputQueue.notifyAll();
-			}*/
+
         }
         //TODO output the message (a new thread wants to send this message)
     }
@@ -243,13 +240,13 @@ public abstract class OperatorType {
      */
     public void waitForEverySocketToSaveMessageInHisFile(DataKey messageData)
     {
-    	synchronized (socketsThatHaveStoredCurrentMessage) {
+    	synchronized (socketsThatHaveSentCurrentMessage) {
     		try {
-    			while(socketsThatHaveStoredCurrentMessage.size()<this.destination.size())
+    			while(socketsThatHaveSentCurrentMessage.size()<this.destination.size())
     	    	{
-    	    	        Debug.printVerbose(socketsThatHaveStoredCurrentMessage.toString());
+    	    	        Debug.printVerbose(socketsThatHaveSentCurrentMessage.toString());
     	    	        Debug.printVerbose(destination.toString());
-    	    			socketsThatHaveStoredCurrentMessage.wait();
+    	    			socketsThatHaveSentCurrentMessage.wait();
     	    	}
     	
 			} catch (InterruptedException e) {
@@ -259,9 +256,9 @@ public abstract class OperatorType {
     }
 
     public void pushOperatorToQueue(OperatorOutputQueue operator){
-        this.socketsThatHaveStoredCurrentMessage.add(operator);
-        synchronized (socketsThatHaveStoredCurrentMessage){
-            socketsThatHaveStoredCurrentMessage.notify();
+        this.socketsThatHaveSentCurrentMessage.add(operator);
+        synchronized (socketsThatHaveSentCurrentMessage){
+            socketsThatHaveSentCurrentMessage.notify();
         }
     }
 }
