@@ -48,13 +48,13 @@ public abstract class OperatorType {
     
     private @Nullable Position source;
     private transient @NotNull List<OperatorOutputQueue> destination;
-    //che fa socket description?
+    //messageAddressees is the list of the next nodes
     private final @NotNull List<Position> messageAddressees;
     private transient ExecutorService executorService;
-    
+    private final Object stoppedByCrash = new Object();
     private transient BlockingQueue<DataKey> sourceMsgQueue; //messaggi input -> processo
-   
-    
+    //list of fallen forward nodes
+    private Set<OutputToSocket> outputToSocketFallen;
     private Map<Position, InputFromSocket> dataSenders;
     
     /**
@@ -76,6 +76,7 @@ public abstract class OperatorType {
         this.slide = slide;
         this.source = socket;
         dataSenders=new HashMap<>();
+        outputToSocketFallen = new HashSet<>();
         recoverySetup();
     }
     
@@ -93,7 +94,7 @@ public abstract class OperatorType {
         this.socketsThatHaveSentCurrentMessage=Collections.synchronizedSet(new HashSet<>());
     }
     
-    
+    //Here i aggregate data
     public void execute() {
         //this condition is a while true loop
     	while (Math.random() < 10) {
@@ -120,9 +121,17 @@ public abstract class OperatorType {
             List<Key> senders=currentMsg.stream().map(dk->dk.getAggregator()).collect(Collectors.toList());
             
            DataKey messageData = new DataKey(result, new Key(this.source, ++sequenceNumber),senders);
-            //aggiungo i dati al recovery manager
+            //I add datas to recovery manager
             currentMsg.forEach(msg->currentMessageRecoveryManager.appendData(msg));
-
+            while(mustWait()) {
+                try {
+                    synchronized (stoppedByCrash) {
+                        stoppedByCrash.wait();
+                    };
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             executorService.submit(() -> sendMessage(messageData));
 
             /*waitForEverySocketToSaveMessageInHisFile(messageData);
@@ -139,7 +148,7 @@ public abstract class OperatorType {
   
     
 
-    /***
+    /**
      * Deploy the task on the operator.
      * This method is called by the ProcessOperator after an operation has been assigned by the MainSupervisor
      */
@@ -165,18 +174,14 @@ public abstract class OperatorType {
                     //for all position we try to open a new socket
                     try {
                         Socket socket = new Socket(socketRepr.getAddress(), socketRepr.getPort());
-                        OutputToSocket outputToSocket = new OutputToSocket(socket);
+                        OutputToSocket outputToSocket = new OutputToSocket(socket, this);
                         this.destination.add(outputToSocket);
                         keepLooping = false;
 
                     } catch (IOException e) {
-                        //TODO Il socket in output (quindi l'altro operatore) non è pronto. Dovrei ciclare?
-                        /*Todo:
-                        // Solution: in teoria, sia per come viene deployato il grafo, sia per l'assunzione di input
-                        dovrebbe essere già a posto, e non esserci il problema.. Parliamone
-                        N.B. Runnandolo una volta mi ha dato errore, riavviandolo non più*/
+                        //If socket isn't ready i cycle waiting for it to be ready
                         Debug.printDebug(e);
-                        Debug.printDebug("I can't establish connection to the other node input!!!!");
+                        Debug.printDebug("I can't establish connection to the other node input! (OperatorType)");
                         keepLooping = true;
                     }
                 }while (keepLooping);
@@ -186,7 +191,7 @@ public abstract class OperatorType {
         //todo: è corretta questa cosa?
         //Ciclo creando una coda di output per ogni destination
         for (OperatorOutputQueue operatorOutputQueue : destination) {
-            //Starting output threads
+            //Starting output threads. They will start to consume their queue. Right now they're waiting for datas
             operatorOutputQueue.start();
         }
 
@@ -196,10 +201,9 @@ public abstract class OperatorType {
         if (source == null)
         {
             InputFromFile inputFromFile = new InputFromFile("src/main/resources/input.txt");
-
-            executorService.submit(() -> inputFromFile.startReceiving(this));    //Start input threads
+            //Start input threads
+            executorService.submit(() -> inputFromFile.startReceiving(this));
             this.execute();
-            //executorService.submit(this::execute);            WHY???
         }
         else{
             //Deploy input from socket. I create a new ServerSocket
@@ -286,4 +290,26 @@ public abstract class OperatorType {
             socketsThatHaveSentCurrentMessage.notify();
         }
     }
+
+    private boolean mustWait(){
+        try {
+            return (!this.outputToSocketFallen.isEmpty());
+        }
+        catch(NullPointerException e){
+            Debug.printError("outPutToSocketFallen is null: maybe you need to update you graphDeployInput.json");
+            return false;
+        }
+    }
+
+    public void stopOutput(OutputToSocket elem){
+        this.outputToSocketFallen.add(elem);
+    }
+
+    public void restartOutput(OutputToSocket elem){
+        this.outputToSocketFallen.remove(elem);
+        synchronized (stoppedByCrash) {
+            stoppedByCrash.notify();
+        }
+    }
+
 }

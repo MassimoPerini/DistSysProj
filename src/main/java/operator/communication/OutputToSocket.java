@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import operator.communication.message.MessageData;
 import operator.recovery.DataKey;
+import operator.types.OperatorType;
 import org.jetbrains.annotations.NotNull;
 import utils.Debug;
 
@@ -20,19 +21,27 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class OutputToSocket implements OperatorOutputQueue{
 
 
-    private final Socket socket;
-    private final ObjectInputStream socketIn;
-    private final ObjectOutputStream socketOut;
+    private Socket socket;
+    private ObjectInputStream socketIn;
+    private ObjectOutputStream socketOut;
     private final ExecutorService executorService;
     private final BlockingQueue<DataKey> messageData;
+    //this is the OperatorType that passes itself in order to stop sending datas to other outputSockets
+    private final OperatorType dataFeeder;
+    private final String addressToReconnectWith;
+    private final int portToReconnectWith;
 
 
-    public OutputToSocket(@NotNull Socket socket) throws IOException {
+    public OutputToSocket(@NotNull Socket socket, OperatorType operatorType) throws IOException {
         this.socket = socket;
         this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
         this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
         this.executorService = Executors.newCachedThreadPool();
         this.messageData = new LinkedBlockingQueue<>();
+        this.dataFeeder = operatorType;
+        //todo: check if both work
+        this.addressToReconnectWith = socket.getInetAddress().toString();
+        this.portToReconnectWith = socket.getPort();
     }
 
 
@@ -44,9 +53,11 @@ public class OutputToSocket implements OperatorOutputQueue{
 
     private void keepSending() {
         Debug.printDebug("Start send with socket...");
-        while(true)
+        //todo: while(true)
+        while(Math.random() < 10)
         {
             try {
+                // i take values from the Q
                 DataKey messageData = this.messageData.take();
                 Debug.printVerbose("operator queue out Socket sending....");
 
@@ -57,6 +68,27 @@ public class OutputToSocket implements OperatorOutputQueue{
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+                dataFeeder.stopOutput(this);
+                Boolean tryToReconnect = true;
+                while(tryToReconnect){
+                    try {
+                        this.socket = new Socket(this.addressToReconnectWith, this.portToReconnectWith);
+                        this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
+                        this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
+                        tryToReconnect = false;
+                        this.dataFeeder.restartOutput(this);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                        Debug.printVerbose("Waiting for the node to come back alive");
+                        //todo check if it's okays
+                        try {
+                            Thread.sleep((long) (200));
+                        } catch (InterruptedException e2) {
+                            e2.printStackTrace();
+                            Debug.printVerbose("Thread sleep failed");
+                        }
+                    }
+                }
             }
         }
 

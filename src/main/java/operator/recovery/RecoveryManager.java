@@ -48,12 +48,7 @@ public class RecoveryManager {
 	{
 		appendDataInFileList(destinationFile, elem);
 	}
-	/*
-	public void appendData(MessageData elem)
-	{
-		appendData(new DataKey(elem));
-	}*/
-	
+
 	
     /**
      * this method appends to an existing file, new Datas.
@@ -66,7 +61,6 @@ public class RecoveryManager {
      */
     private void appendDataInFileList(String fileName, DataKey dataKey){
         String s;
-        //added after Fulvio put destinationFile
         fileName = this.destinationFile;
         StringBuilder toConvertFromJSON = new StringBuilder();
         try
@@ -108,22 +102,23 @@ public class RecoveryManager {
             }
             catch(FileNotFoundException e)
             {
-                Debug.printError("File was not found while trying to add data!");
+                Debug.printError("File was not found while trying to add data! - appendDataInFileList()");
             }
             catch(IOException e)
             {
-                Debug.printError("No file found!");
+                Debug.printError("An error has occured while extrecting data from file! (IOException)- appendDataInFileList()");
             }
 
             br.close();
         }
         catch(FileNotFoundException e)
         {
-            Debug.printError("Error1, file not found while appending data!");
+            Debug.printError("Error1, file not found while appending data! This file "+ fileName.toString()
+            + " was not found");
         }
         catch(IOException e)
         {
-            Debug.printError("Error2, IO exception!");
+            Debug.printError("Error2, IO exception! From this file " + fileName.toString());
         }
     }
 
@@ -161,22 +156,22 @@ public class RecoveryManager {
             }
             catch(FileNotFoundException e)
             {
-                Debug.printError("File was not found!");
+                Debug.printError("File was not found while reading it! - drawDataFromFileList()");
             }
             catch(IOException e)
             {
-                Debug.printError("No file found!");
+                Debug.printError("No value found! (IOException) - drawDataFromFileList()");
             }
             br.close();
             return value;
         }
         catch(FileNotFoundException e)
         {
-            Debug.printError("Error1, file not found drawing data!");
+            Debug.printError("Error1, file not found drawing data! This file " + fileName.toString() + " was not found");
         }
         catch(IOException e)
         {
-            Debug.printError("Error2, IO exception!");
+            Debug.printError("Error2, IO exception! This file " + fileName.toString());
         }
         //todo: handle null?
         return value;

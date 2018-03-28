@@ -19,7 +19,7 @@ import java.net.URISyntaxException;
  *
  */
 public class MainDaemon {
-
+    //one for each node so it's fixed
     private static final int PORT = 1337;
 
     public static void main(String [] args) throws URISyntaxException, IOException {
