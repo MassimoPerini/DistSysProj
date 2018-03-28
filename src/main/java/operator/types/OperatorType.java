@@ -134,8 +134,10 @@ public abstract class OperatorType {
             }
             executorService.submit(() -> sendMessage(messageData));
 
-            /*waitForEverySocketToSaveMessageInHisFile(messageData);
+            waitForEverySocketToSaveMessageInHisFile(messageData);
 
+            resetSendersSet();
+            /*
             for(int i=0;i<this.slide;i++)
             {
             	DataKey d= currentMsg.remove(0);
@@ -283,7 +285,16 @@ public abstract class OperatorType {
 			}
     	}
     }
+    
+    private void resetSendersSet()
+    {
+    	this.socketsThatHaveSentCurrentMessage=new HashSet<>();
+    }
 
+    /**
+     * Notify the OperatorType that the OperatorOutputQueue in input has sent the current message
+     * @param operator
+     */
     public void pushOperatorToQueue(OperatorOutputQueue operator){
         this.socketsThatHaveSentCurrentMessage.add(operator);
         synchronized (socketsThatHaveSentCurrentMessage){
