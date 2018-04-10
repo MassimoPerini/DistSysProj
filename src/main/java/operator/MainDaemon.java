@@ -1,5 +1,6 @@
 package operator;
 
+import operator.communication.DaemonOperatorInfo;
 import operator.communication.DaemonSocket;
 import utils.Debug;
 
@@ -25,6 +26,7 @@ public class MainDaemon {
     public static void main(String [] args) throws URISyntaxException, IOException {
 
         Debug.setLevel(Debug.LEVEL_VERBOSE);
+        DaemonOperatorInfo daemonOperatorInfo = new DaemonOperatorInfo();
 
         String jarFile = "";
         if (args.length > 0) {
@@ -38,7 +40,7 @@ public class MainDaemon {
         String packageClass = ProcessOperator.class.getCanonicalName();
 
         DaemonSocket daemonSocket = new DaemonSocket(new Socket("127.0.0.1", PORT));
-        daemonSocket.start();
+        daemonSocket.start(daemonOperatorInfo);
 
     }
 }

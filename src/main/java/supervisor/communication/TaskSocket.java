@@ -3,7 +3,9 @@ package supervisor.communication;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import operator.communication.message.LogMessageOperator;
 import org.jetbrains.annotations.NotNull;
+import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.MessageSupervisor;
 import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
@@ -35,10 +37,12 @@ public class TaskSocket{
 
         RuntimeTypeAdapterFactory typeAdapterFactory2 = RuntimeTypeAdapterFactory.of(MessageOperator.class, "type")
                 .registerSubtype(ReplyHeartBeat.class)
+                .registerSubtype(LogMessageOperator.class)
                 ;
         readGson=new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory2).create();
         RuntimeTypeAdapterFactory typeAdapterFactory = RuntimeTypeAdapterFactory.of(MessageSupervisor.class, "type")
                 .registerSubtype(OperatorDeployment.class)
+                .registerSubtype(HeartbeatRequest.class)
                 ;
         writeGson = new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory).create();  //setPrettyPrinting
         executorService = Executors.newCachedThreadPool();

@@ -1,13 +1,10 @@
 package operator.types;
 
-import operator.communication.message.MessageData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
-import utils.Debug;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Created by higla on 06/03/18.

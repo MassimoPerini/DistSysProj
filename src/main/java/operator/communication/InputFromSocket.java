@@ -4,15 +4,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import operator.communication.OperatorInputQueue;
-import operator.communication.message.MessageData;
 import operator.recovery.DataKey;
-import operator.recovery.RecoveryManager;
 import operator.types.OperatorType;
 import supervisor.Position;
 import utils.Debug;

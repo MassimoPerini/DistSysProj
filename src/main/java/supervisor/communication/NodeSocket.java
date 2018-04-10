@@ -20,9 +20,9 @@ public class NodeSocket {
     private final TaskSocket daemonSocket;
     //this is the list of all operators associated to the node
     //they can be 0..n operations diffrent from each others
-    private final List<TaskSocket> operatorsSocket;
+    private final List<TaskSocket> operatorsSocket; //TODO non usato
     private final ExecutorService executorService;
-    private static final int DELAY = 5000;
+    private static final int DELAY = 8000;
 
     NodeSocket(@NotNull TaskSocket daemonSocket)
     {
@@ -38,34 +38,16 @@ public class NodeSocket {
 
     public void doHearbeat()
     {
-        Timer [] timers = new Timer [operatorsSocket.size()+1];
-
-        for (int i=0;i<timers.length;i++)
-        {
-            timers[i] = new Timer(true);
-            timers[i].schedule(new TimerTask() {
-                @Override
-                public void run()
-                {
-                    Debug.printVerbose("TIMER!!!!!!!!");
-                }
-            }, DELAY);
-
-            if (i==0){
-                executorService.submit(daemonSocket::listen);
-            }
-            else
+        Timer timer = new Timer(true);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run()
             {
-                executorService.submit(operatorsSocket.get(i-1)::listen);
+                Debug.printVerbose("TIMER elapsed !!!!!!!!");
             }
-        }
-
-        daemonSocket.send(new HeartbeatRequest(0));
-
-        for (int i=0;i<operatorsSocket.size();i++)
-        {
-            operatorsSocket.get(i).send(new HeartbeatRequest(i+1));
-        }
+        }, DELAY);
+        executorService.submit(daemonSocket::listen);
+        daemonSocket.send(new HeartbeatRequest());
     }
 
     //todo update using ip-port identifier

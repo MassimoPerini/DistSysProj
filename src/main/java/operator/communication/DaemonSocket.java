@@ -3,9 +3,12 @@ package operator.communication;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import operator.communication.message.LogMessageOperator;
 import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
 import org.jetbrains.annotations.NotNull;
+import sun.plugin2.message.Message;
+import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.MessageSupervisor;
 import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
@@ -40,10 +43,12 @@ public class DaemonSocket {
 
         RuntimeTypeAdapterFactory typeAdapterFactory2 = RuntimeTypeAdapterFactory.of(MessageSupervisor.class, "type")
                 .registerSubtype(OperatorDeployment.class)
+                .registerSubtype(HeartbeatRequest.class)
                 ;
         readGson=new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory2).create();
         RuntimeTypeAdapterFactory typeAdapterFactory = RuntimeTypeAdapterFactory.of(MessageOperator.class, "type")
                 .registerSubtype(ReplyHeartBeat.class)
+                .registerSubtype(LogMessageOperator.class)
                 ;
         writeGson = new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory).create();  //setPrettyPrinting
         executorService = Executors.newCachedThreadPool();
@@ -53,10 +58,10 @@ public class DaemonSocket {
     /**
      * This method is called from the MainDaemon class as soon as it is created.
      */
-    public void start()
+    public void start(DaemonOperatorInfo daemonOperatorInfo)
     {
         try {
-            this.executorService.submit(this::listen);
+            this.executorService.submit(() -> listen(daemonOperatorInfo));
         }
         catch (Exception e)
         {
@@ -67,9 +72,9 @@ public class DaemonSocket {
     /**
      * This method either allow the Daemon to submit a thread to:
      * 1) Spawn a new Operator
-     * todo: 2) Listen for the heartbeat
+     * 2) Listen for the heartbeat
      */
-    private void listen() {
+    private void listen(DaemonOperatorInfo daemonOperatorInfo) {
         String input;
         Debug.printVerbose("node Socket receiving....");
 
@@ -78,7 +83,10 @@ public class DaemonSocket {
                 while ((input = socketIn.readLine()) != null) {
                     Debug.printVerbose("node:" + input);
                     MessageSupervisor messageSupervisor = readGson.fromJson(input, MessageSupervisor.class);
-                    this.executorService.submit(messageSupervisor::execute);
+                    this.executorService.submit(() -> {
+                        MessageOperator result = messageSupervisor.execute(daemonOperatorInfo);
+                        send(result);
+                    });
                 }
             }
         }
@@ -94,11 +102,12 @@ public class DaemonSocket {
         //Expected login here
     }
 
-    void send(@NotNull MessageSupervisor messageServer){
+    void send(@NotNull MessageOperator messageServer){
         executorService.submit (() -> {
             try {
-                String res = writeGson.toJson(messageServer, MessageSupervisor.class);
-                Debug.printVerbose("SERVER: SENDING " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
+
+                String res = writeGson.toJson(messageServer, MessageOperator.class);
+                Debug.printVerbose("DAEMON: SENDING " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
                 socketOut.println(res);
                 socketOut.flush();
             }

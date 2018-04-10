@@ -1,5 +1,8 @@
 package supervisor.communication.message;
 
+import operator.communication.DaemonOperatorInfo;
+import operator.communication.message.MessageOperator;
+
 /**
  * Created by massimo on 10/02/18.
  *
@@ -11,6 +14,6 @@ public interface MessageSupervisor {
     /***
      * Invoked by the node
      */
-    void execute();
+    MessageOperator execute(DaemonOperatorInfo daemonOperatorInfo);
 
 }

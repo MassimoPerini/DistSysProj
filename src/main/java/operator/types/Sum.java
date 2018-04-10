@@ -1,17 +1,10 @@
 package operator.types;
 
-import operator.communication.message.MessageData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
-import utils.Debug;
 
-import java.net.Socket;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.stream.Stream;
 
 /**
  * Created by massimo on 11/02/18.

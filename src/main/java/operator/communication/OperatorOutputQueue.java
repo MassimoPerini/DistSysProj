@@ -1,6 +1,5 @@
 package operator.communication;
 
-import operator.communication.message.MessageData;
 import operator.recovery.DataKey;
 
 /**
