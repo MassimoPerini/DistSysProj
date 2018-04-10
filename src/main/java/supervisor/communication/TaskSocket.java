@@ -10,10 +10,12 @@ import supervisor.communication.message.MessageSupervisor;
 import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
 import supervisor.communication.message.OperatorDeployment;
+import supervisor.graph_representation.Vertex;
 import utils.Debug;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -49,7 +51,7 @@ public class TaskSocket{
     }
 
 
-    public void listen() {
+    public void listen(List<Vertex<OperatorDeployment>> sortedGraph) {
         //receive
         String input;
         //Expected login here
@@ -60,7 +62,14 @@ public class TaskSocket{
                 input = socketIn.readLine();
                 Debug.printVerbose("RECEIVED: " + input);
                 MessageOperator messageSupervisor = readGson.fromJson(input, MessageOperator.class);
-                messageSupervisor.execute();
+                List <MessageSupervisor> operatorDeployments = messageSupervisor.execute(sortedGraph);
+
+                if (operatorDeployments != null) {
+                    for (MessageSupervisor operatorDeployment : operatorDeployments) {
+                        this.send(operatorDeployment);
+                    }
+                }
+
             //}
         } catch (IOException e) {
             Debug.printError(e);

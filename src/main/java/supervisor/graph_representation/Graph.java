@@ -1,10 +1,7 @@
 package supervisor.graph_representation;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.omg.CORBA.PRIVATE_MEMBER;

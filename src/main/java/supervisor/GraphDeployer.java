@@ -103,7 +103,7 @@ public class GraphDeployer implements Runnable{
 					deploy(sortedGraph);
 					Debug.printVerbose("Deployed sorted graph");
                     Debug.printVerbose("Starting heartbeat");
-                    socketManager.startHeartBeat();
+                    socketManager.startHeartBeat(sortedGraph);
                 } catch (NoDaemonAvailableException e) {
 					try {
 						Debug.printError("No daemon is currently available, waiting for 10 seconds in order to receiver all daemons");
@@ -147,11 +147,11 @@ public class GraphDeployer implements Runnable{
 		}
 		//Reverses the topological order to simplify forward star implementation
 		Collections.reverse(graph);
-		int position = 0;
+		int incrementalId = 0;
 		for(Vertex<OperatorDeployment> curr:graph)
 		{
-			this.socketManager.deployNewOperator(position, curr.getData());
-			position++;
+			this.socketManager.deployNewOperator(incrementalId, curr.getData());
+            incrementalId++;
 			//int position=new Random().nextInt(this.socketManager.getNumberOfCurrentlyConnectedDaemons());
 		}
 	}
