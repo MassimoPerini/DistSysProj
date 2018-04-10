@@ -102,7 +102,9 @@ public class GraphDeployer implements Runnable{
 				try {
 					deploy(sortedGraph);
 					Debug.printVerbose("Deployed sorted graph");
-				} catch (NoDaemonAvailableException e) {
+                    Debug.printVerbose("Starting heartbeat");
+                    socketManager.startHeartBeat();
+                } catch (NoDaemonAvailableException e) {
 					try {
 						Debug.printError("No daemon is currently available, waiting for 10 seconds in order to receiver all daemons");
 						/*Thread.sleep((long) (10000));

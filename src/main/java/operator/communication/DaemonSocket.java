@@ -6,6 +6,7 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
 import org.jetbrains.annotations.NotNull;
+import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.MessageSupervisor;
 import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
@@ -40,6 +41,7 @@ public class DaemonSocket {
 
         RuntimeTypeAdapterFactory typeAdapterFactory2 = RuntimeTypeAdapterFactory.of(MessageSupervisor.class, "type")
                 .registerSubtype(OperatorDeployment.class)
+                .registerSubtype(HeartbeatRequest.class)
                 ;
         readGson=new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory2).create();
         RuntimeTypeAdapterFactory typeAdapterFactory = RuntimeTypeAdapterFactory.of(MessageOperator.class, "type")
@@ -53,10 +55,10 @@ public class DaemonSocket {
     /**
      * This method is called from the MainDaemon class as soon as it is created.
      */
-    public void start()
+    public void start(DaemonOperatorInfo daemonOperatorInfo)
     {
         try {
-            this.executorService.submit(this::listen);
+            this.executorService.submit(() -> listen(daemonOperatorInfo));
         }
         catch (Exception e)
         {
@@ -69,7 +71,7 @@ public class DaemonSocket {
      * 1) Spawn a new Operator
      * todo: 2) Listen for the heartbeat
      */
-    private void listen() {
+    private void listen(DaemonOperatorInfo daemonOperatorInfo) {
         String input;
         Debug.printVerbose("node Socket receiving....");
 
@@ -78,7 +80,7 @@ public class DaemonSocket {
                 while ((input = socketIn.readLine()) != null) {
                     Debug.printVerbose("node:" + input);
                     MessageSupervisor messageSupervisor = readGson.fromJson(input, MessageSupervisor.class);
-                    this.executorService.submit(messageSupervisor::execute);
+                    this.executorService.submit(() -> messageSupervisor.execute(daemonOperatorInfo));
                 }
             }
         }

@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 public class SocketManager {
 
     private final List<NodeSocket> nodeSocketList;
-    private final static int TIME_BETWEEN_HEARTBEAT = 4000;
+    private final static int TIME_BETWEEN_HEARTBEAT = 12000;
 
     public SocketManager()
     {
@@ -37,7 +37,7 @@ public class SocketManager {
     }
 
     /**
-     * this method is called by the supervisor in order to start the heartbeat
+     * this method is called by the supervisor (after graph deployment) in order to start the heartbeat
      */
     public void startHeartBeat()
     {

@@ -33,12 +33,13 @@ public class InputMakerJSON {
         Gson writeGson;
 
         Position firstSocket = new Position("127.0.0.1", 1340);
+        Position secondSocket = new Position ("127.0.0.1", 1341);
 
         List<Position> out = new LinkedList<>();
         out.add(firstSocket);
 
-        OperatorDeployment firstOperator = new OperatorDeployment(new Sum(2,2, null, out), "");
-        OperatorDeployment secondOperator = new OperatorDeployment(new Sum(3,3, firstSocket, new LinkedList<>()), "");
+        OperatorDeployment firstOperator = new OperatorDeployment(new Sum(2,2, null, out), "", firstSocket);
+        OperatorDeployment secondOperator = new OperatorDeployment(new Sum(3,3, firstSocket, new LinkedList<>()), "", secondSocket);
         //OperatorDeployment thirdOperator = new OperatorDeployment(new Sum(4,4, null, new LinkedList<>()), "");
 
         Graph<OperatorDeployment> g =new Graph<>();

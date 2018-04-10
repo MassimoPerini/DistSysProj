@@ -1,19 +1,24 @@
 package supervisor.communication.message;
 
+import operator.communication.DaemonOperatorInfo;
+import operator.communication.message.ReplyHeartBeat;
+import supervisor.Position;
+
+import java.util.List;
+
 /**
  * Created by massimo on 10/02/18.
  */
 public class HeartbeatRequest implements MessageSupervisor {
 
-    private final int counter;
-
-    public HeartbeatRequest(int timerCounter)
+    public HeartbeatRequest()
     {
-        this.counter = timerCounter;
     }
 
     @Override
-    public void execute() {
-
+    public void execute(DaemonOperatorInfo daemonOperatorInfo) {
+        List<Position> failedProcesses = daemonOperatorInfo.getAndRemoveFailedProcesses();
+        System.out.println("FAILED PROCESSES: "+failedProcesses);
+        ReplyHeartBeat replyHeartBeat = new ReplyHeartBeat();
     }
 }
