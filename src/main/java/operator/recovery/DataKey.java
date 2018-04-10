@@ -10,6 +10,7 @@ import java.util.List;
 import javax.print.attribute.standard.MediaSize.Other;
 
 import org.jetbrains.annotations.Nullable;
+import utils.Debug;
 
 /**
  * Created by higla on 24/02/2018.
@@ -82,7 +83,10 @@ public class DataKey implements Serializable{
      */
     public boolean checkSameData(DataKey dataKey)
     {
-        return dataKey.aggregator==this.aggregator&& checkEqualValue(dataKey.getData());
+        Debug.printVerbose("Sto confrontanto "+this+dataKey);
+        Debug.printVerbose("e sono..."+(dataKey.aggregator==this.aggregator&& checkEqualValue(dataKey.getData())));
+
+        return dataKey.aggregator.equals(this.aggregator)&& checkEqualValue(dataKey.getData());
     }
 
     @Override

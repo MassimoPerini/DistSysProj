@@ -3,6 +3,7 @@ package operator.communication;
 import operator.communication.message.MessageData;
 import operator.communication.message.MessageOperator;
 import operator.recovery.DataKey;
+import operator.types.OperatorType;
 import utils.Debug;
 
 import java.io.FileWriter;
@@ -20,6 +21,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class OutputToFile implements OperatorOutputQueue {
 
     private BlockingQueue<DataKey> messageData = new LinkedBlockingQueue<>();
+    private OperatorType dataFeeder;
+
+    public OutputToFile(OperatorType dataFeeder)
+    {
+        this.dataFeeder=dataFeeder;
+    }
 
     @Override
     public void start()
@@ -40,6 +47,7 @@ public class OutputToFile implements OperatorOutputQueue {
                 FileWriter fileWriter=new FileWriter("output.txt");
                 fileWriter.write(msg.getData()+"");
                 fileWriter.flush();
+                this.dataFeeder.pushOperatorToQueue(this);
                 
             }
         }catch (Exception e)

@@ -137,12 +137,14 @@ public abstract class OperatorType {
             waitForEverySocketToSaveMessageInHisFile(messageData);
 
             resetSendersSet();
-            /*
+
+
             for(int i=0;i<this.slide;i++)
             {
             	DataKey d= currentMsg.remove(0);
             	currentMessageRecoveryManager.removeDataFromList(d);
-            }*/
+            }
+
         }
     }
      protected abstract float operationType(List<Float> streamDatas);
@@ -165,7 +167,7 @@ public abstract class OperatorType {
         if (messageAddressees.isEmpty())
         {
             //No socket output -> write on file
-            this.destination.add(new OutputToFile());
+            this.destination.add(new OutputToFile(this));
         }
         else
         {

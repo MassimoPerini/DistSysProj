@@ -1,6 +1,7 @@
 package operator.recovery;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import operator.communication.message.MessageData;
@@ -14,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
@@ -26,7 +28,7 @@ public class RecoveryManager {
 	
 	public RecoveryManager(String destinationFile)
 	{
-	    Debug.printVerbose("Creando il file...");
+	    Debug.printVerbose("\n\n\nCreando il file...");
 		this.destinationFile=destinationFile;
 		this.createNewFile(this.destinationFile);
 	}
@@ -95,7 +97,7 @@ public class RecoveryManager {
 
                 Path filePath = Paths.get(fileName);
                 BufferedWriter bufferedWriter= Files.newBufferedWriter(filePath, TRUNCATE_EXISTING);
-                bufferedWriter.write( new Gson().toJson(datas, type));
+                bufferedWriter.write( new GsonBuilder().setPrettyPrinting().create().toJson(datas, type));
                 Debug.printVerbose("Data read : " + datas.toString());
                 bufferedWriter.close();
 
@@ -150,7 +152,7 @@ public class RecoveryManager {
             try{
                 Path filePath = Paths.get(fileName);
                 BufferedWriter bw= Files.newBufferedWriter(filePath, TRUNCATE_EXISTING);
-                bw.write( new Gson().toJson(datas, type));
+                bw.write( new GsonBuilder().setPrettyPrinting().create().toJson(datas, type));
                 Debug.printVerbose(datas.toString());
                 bw.close();
             }
@@ -194,15 +196,14 @@ public class RecoveryManager {
             List<DataKey> datas = new Gson().fromJson(toConvertFromJSON.toString(), type);
             if(datas != null) {
                 //i look for the data
-                for(DataKey data:datas){
-                    if(data.checkSameData(dataToCheck))
-                        datas.remove(data);
-                }
+                List<DataKey> toRemove;
+                toRemove=datas.stream().filter(dat->dat.checkSameData(dataToCheck)).collect(Collectors.toList());
+                datas.removeAll(toRemove);
             }
             try{
                 Path filePath = Paths.get(destinationFile);
                 BufferedWriter bw= Files.newBufferedWriter(filePath, TRUNCATE_EXISTING);
-                bw.write( new Gson().toJson(datas, type));
+                bw.write( new GsonBuilder().setPrettyPrinting().create().toJson(datas, type));
                 Debug.printVerbose("New datas on file : " + datas.toString());
                 bw.close();
             }
