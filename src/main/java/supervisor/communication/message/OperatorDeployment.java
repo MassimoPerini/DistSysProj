@@ -27,11 +27,18 @@ public class OperatorDeployment implements MessageSupervisor {
     private final String jarFile;
     private String outJson;
     private final Position ownPosition;
+
+    public Position getOwnPosition() {
+        return ownPosition;
+    }
+
     /***
      *
      * @param operatorType The operator that needs to be deployed
      * @param jarFile TEMPORARY PARAMETER, with "" it will run from IDE the new process, with the path of the jar will run the new class from the jar file
      */
+
+
 
     public OperatorDeployment(@NotNull OperatorType operatorType, String jarFile, Position position)
     {
@@ -90,9 +97,14 @@ public class OperatorDeployment implements MessageSupervisor {
             Process process = pb.start();
             daemonOperatorInfo.addProcess(this.ownPosition, process);   //Adding the process to the process of the daemon
 
-            //process.destroy();
 
-            return new LogMessageOperator("Success");
+            if (Math.random()>0.5) {
+                process.destroy();
+                Debug.printError("Il processo è stato killato volontariamente");
+            }
+
+            //return new LogMessageOperator("Success");
+            return null;
 
             /*
             try {
@@ -106,7 +118,8 @@ public class OperatorDeployment implements MessageSupervisor {
         {
             e.printStackTrace();
             Debug.printError(e);
-            return new LogMessageOperator("Error");
+            //return new LogMessageOperator("Error");
+            return null;
 
         }
     }

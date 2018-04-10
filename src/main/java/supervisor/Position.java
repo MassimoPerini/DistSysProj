@@ -35,6 +35,24 @@ public class Position implements Serializable{
 		this.positionInMachine=i;
 	}*/
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Position position = (Position) o;
+
+		if (port != position.port) return false;
+		return ipAddress.equals(position.ipAddress);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = ipAddress.hashCode();
+		result = 31 * result + port;
+		return result;
+	}
+
 	public String getAddress() {
 		return ipAddress;
 	}

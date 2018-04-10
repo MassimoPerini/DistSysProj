@@ -85,7 +85,9 @@ public class DaemonSocket {
                     MessageSupervisor messageSupervisor = readGson.fromJson(input, MessageSupervisor.class);
                     this.executorService.submit(() -> {
                         MessageOperator result = messageSupervisor.execute(daemonOperatorInfo);
-                        send(result);
+                        if (result != null) {
+                            send(result);
+                        }
                     });
                 }
             }

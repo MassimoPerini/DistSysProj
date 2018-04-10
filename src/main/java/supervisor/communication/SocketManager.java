@@ -2,6 +2,7 @@ package supervisor.communication;
 
 import operator.types.Sum;
 import supervisor.communication.message.OperatorDeployment;
+import supervisor.graph_representation.Vertex;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,13 +40,13 @@ public class SocketManager {
     /**
      * this method is called by the supervisor (after graph deployment) in order to start the heartbeat
      */
-    public void startHeartBeat()
+    public void startHeartBeat(List<Vertex<OperatorDeployment>> sortedGraph)
     {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(() -> {
             while (true) {
                 for (NodeSocket nodeSocket : nodeSocketList) {
-                    nodeSocket.doHearbeat();
+                    nodeSocket.doHearbeat(sortedGraph);
                 }
                 Thread.sleep(TIME_BETWEEN_HEARTBEAT);
             }

@@ -4,6 +4,7 @@ import operator.types.Sum;
 import org.jetbrains.annotations.NotNull;
 import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.OperatorDeployment;
+import supervisor.graph_representation.Vertex;
 import utils.Debug;
 
 import java.net.Socket;
@@ -36,7 +37,7 @@ public class NodeSocket {
         operatorsSocket.add(taskSocket);
     }
 
-    public void doHearbeat()
+    public void doHearbeat(List<Vertex<OperatorDeployment>> sortedGraph)
     {
         Timer timer = new Timer(true);
         timer.schedule(new TimerTask() {
@@ -46,7 +47,7 @@ public class NodeSocket {
                 Debug.printVerbose("TIMER elapsed !!!!!!!!");
             }
         }, DELAY);
-        executorService.submit(daemonSocket::listen);
+        executorService.submit(() -> daemonSocket.listen(sortedGraph));
         daemonSocket.send(new HeartbeatRequest());
     }
 
