@@ -1,8 +1,13 @@
 package supervisor.communication.message;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.communication.DaemonOperatorInfo;
+import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
 import supervisor.Position;
+import utils.Debug;
 
 import java.util.List;
 
@@ -16,9 +21,12 @@ public class HeartbeatRequest implements MessageSupervisor {
     }
 
     @Override
-    public void execute(DaemonOperatorInfo daemonOperatorInfo) {
+    public MessageOperator execute(DaemonOperatorInfo daemonOperatorInfo) {
         List<Position> failedProcesses = daemonOperatorInfo.getAndRemoveFailedProcesses();
-        System.out.println("FAILED PROCESSES: "+failedProcesses);
-        ReplyHeartBeat replyHeartBeat = new ReplyHeartBeat();
+        Debug.printVerbose("FAILED PROCESSES: "+failedProcesses);
+
+        ReplyHeartBeat replyHeartBeat = new ReplyHeartBeat(failedProcesses);
+
+        return replyHeartBeat;
     }
 }

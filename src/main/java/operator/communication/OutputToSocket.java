@@ -1,8 +1,5 @@
 package operator.communication;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import operator.communication.message.MessageData;
 import operator.recovery.DataKey;
 import operator.types.OperatorType;
 import org.jetbrains.annotations.NotNull;

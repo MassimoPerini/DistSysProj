@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.ProcessOperator;
 import operator.communication.DaemonOperatorInfo;
+import operator.communication.message.LogMessageOperator;
+import operator.communication.message.MessageOperator;
 import operator.types.OperatorType;
 import operator.types.Sum;
 import org.jetbrains.annotations.NotNull;
@@ -43,12 +45,11 @@ public class OperatorDeployment implements MessageSupervisor {
 
 
     }
-
     /***
      * Invoked by the Daemon, will deploy a new operator (starting a new process)
      */
     @Override
-    public void execute(DaemonOperatorInfo daemonOperatorInfo) {
+    public MessageOperator execute(DaemonOperatorInfo daemonOperatorInfo) {
         try {
             URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
             String packageClass = ProcessOperator.class.getCanonicalName();
@@ -88,6 +89,11 @@ public class OperatorDeployment implements MessageSupervisor {
 
             Process process = pb.start();
             daemonOperatorInfo.addProcess(this.ownPosition, process);   //Adding the process to the process of the daemon
+
+            //process.destroy();
+
+            return new LogMessageOperator("Success");
+
             /*
             try {
                 process.waitFor();
@@ -100,7 +106,8 @@ public class OperatorDeployment implements MessageSupervisor {
         {
             e.printStackTrace();
             Debug.printError(e);
-        }
+            return new LogMessageOperator("Error");
 
+        }
     }
 }
