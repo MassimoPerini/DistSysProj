@@ -1,15 +1,10 @@
 package operator.communication;
 
-import operator.communication.message.MessageData;
-import operator.communication.message.MessageOperator;
 import operator.recovery.DataKey;
 import operator.types.OperatorType;
 import utils.Debug;
 
 import java.io.FileWriter;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

@@ -21,7 +21,6 @@ import operator.communication.OperatorOutputQueue;
 import operator.communication.OutputToFile;
 import operator.communication.OutputToSocket;
 import operator.communication.InputFromFile;
-import operator.communication.message.MessageData;
 import operator.recovery.DataKey;
 import operator.recovery.Key;
 import operator.recovery.RecoveryManager;
@@ -30,8 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
 import utils.Debug;
-
-import javax.xml.crypto.Data;
 
 /**
  * Created by massimo on 11/02/18.
