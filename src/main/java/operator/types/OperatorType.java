@@ -83,10 +83,10 @@ public abstract class OperatorType {
     private void recoverySetup()
     {
         if(source == null)
-            this.currentMessageRecoveryManager=new RecoveryManager("output_handler_recovery"+ "origin");
+            this.currentMessageRecoveryManager=new RecoveryManager("output_handler_recovery"+ "origin"+".txt");
         else {
             this.currentMessageRecoveryManager =
-                    new RecoveryManager("output_handler_recovery" + source.toString());
+                    new RecoveryManager("output_handler_recovery" + source.toString()+".txt");
         }
         this.socketsThatHaveSentCurrentMessage=Collections.synchronizedSet(new HashSet<>());
     }

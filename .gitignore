@@ -10,6 +10,7 @@ tmp/
 *.swp
 *.txt
 *~.nib
+*.iml
 local.properties
 .settings/
 .loadpath
