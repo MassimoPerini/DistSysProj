@@ -60,7 +60,6 @@ public class OutputToSocket implements OperatorOutputQueue{
 
                 this.socketOut.writeObject(messageData);
                 this.socketOut.flush();
-                this.dataFeeder.pushOperatorToQueue(this);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (IOException e) {

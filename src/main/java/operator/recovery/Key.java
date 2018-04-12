@@ -31,8 +31,24 @@ public class Key implements Serializable{
 	
 	public String toString()
 	{
-		return (node==null?"_file":node.toString())+sequenceNumber;
+		return (node==null?"_file":node.toString())+":sequenceNumber="+ sequenceNumber;
 	}
-	
-	
+
+	public boolean sameSource(Key other)
+	{
+		if (node==null)
+		{
+			return other.node==null;
+		}
+		return node.equals(other.node);
+	}
+
+	public boolean otherHasSameSenderButOlderSequenceNumber(Key other)
+	{
+		return sameSource(other) && this.sequenceNumber>other.sequenceNumber;
+	}
+
+    public Position getNode() {
+		return  node;
+    }
 }

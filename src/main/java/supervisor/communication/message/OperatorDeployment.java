@@ -98,11 +98,6 @@ public class OperatorDeployment implements MessageSupervisor {
             daemonOperatorInfo.addProcess(this.ownPosition, process);   //Adding the process to the process of the daemon
 
 
-            if (Math.random()>0.5) {
-                process.destroy();
-                Debug.printError("Il processo è stato killato volontariamente");
-            }
-
             //return new LogMessageOperator("Success");
             return null;
 

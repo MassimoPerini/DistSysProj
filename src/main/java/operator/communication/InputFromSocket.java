@@ -8,6 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import operator.recovery.DataKey;
+import operator.recovery.Key;
 import operator.types.OperatorType;
 import supervisor.Position;
 import utils.Debug;
@@ -23,8 +24,8 @@ public class InputFromSocket implements OperatorInputQueue{
 	private final Socket inputSocket;
 	private final ObjectInputStream socketIn;
 	private final ObjectOutputStream socketOut;
-	private final BlockingQueue<Ack> acksToSend;
-	
+	private final BlockingQueue<Key> acksToSend;
+
 
 	
 	/**
@@ -60,7 +61,7 @@ public class InputFromSocket implements OperatorInputQueue{
 		}
 	}
 	
-	public void sendAck(Ack ack)
+	public void sendAck(Key ack)
 	{
 		try {
 			acksToSend.put(ack);

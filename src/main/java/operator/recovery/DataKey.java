@@ -84,11 +84,16 @@ public class DataKey implements Serializable{
         return dataKey.aggregator.equals(this.aggregator)&& checkEqualValue(dataKey.getData());
     }
 
+    public List<Key> getSources()
+    {
+        return  this.sources;
+    }
+
     @Override
     public String toString() {
         return "DataKey{" +
                 "data=" + data +
-                ", progressiveKey='" + aggregator + '\'' +
+                ", progressiveKey='" + aggregator.toString() + '\'' +
        ", sources='" + sources + '\'' +
        
                 '}';
@@ -99,5 +104,10 @@ public class DataKey implements Serializable{
     	if(this.aggregator!=null)
     		return this.aggregator.equals(key.aggregator);
     	else return key.aggregator==null;
+    }
+
+    public boolean otherHasSameSenderButOlderSequenceNumber(DataKey currentlyInFile)
+    {
+        return this.aggregator.otherHasSameSenderButOlderSequenceNumber(currentlyInFile.getAggregator());
     }
 }

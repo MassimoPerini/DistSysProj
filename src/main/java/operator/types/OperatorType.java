@@ -3,24 +3,14 @@ package operator.types;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
-import operator.communication.InputFromSocket;
-import operator.communication.OperatorOutputQueue;
-import operator.communication.OutputToFile;
-import operator.communication.OutputToSocket;
-import operator.communication.InputFromFile;
+import operator.communication.*;
 import operator.recovery.DataKey;
 import operator.recovery.Key;
 import operator.recovery.RecoveryManager;
@@ -49,21 +39,26 @@ public abstract class OperatorType {
     private final @NotNull List<Position> messageAddressees;
     private transient ExecutorService executorService;
     private final Object stoppedByCrash = new Object();
-    private transient BlockingQueue<DataKey> sourceMsgQueue; //messaggi input -> processo
+
+    private transient List<DataKey> sourceMsgQueue; //messaggi input -> processo
     //list of fallen forward nodes
     private Set<OutputToSocket> outputToSocketFallen;
     private Map<Position, InputFromSocket> dataSenders;
     
     /**
-     * This object is necessary to store the message being sent now.
-     * After the message is Sent by all the output queues, this very object is used to delete it.
+     * This object is used to store the last processed window
      */
-    private RecoveryManager currentMessageRecoveryManager;
+    private RecoveryManager lastProcessedWindowRecoveryManager;
+
     /**
-     * This set contains all the output queues that have Sent/sent the message
+     * This file contains all the messages that must be stored because addressees haven't received them yet.
+     * Semantics: messages are appended without their sources.
+     * Each source represents a node having acknowledged the message.
+     * The list of sources is updated when acks are received.
      */
-    private Set<OperatorOutputQueue> socketsThatHaveSentCurrentMessage;
-    
+    private RecoveryManager recoveryManagerForMessagesSentAndNotAcknowledged;
+
+    private  RecoveryManager lastMessageBySenderRecoveryManager;
 
 
     public OperatorType(@NotNull List<Position> destination, int size, int slide, @Nullable Position socket)
@@ -80,15 +75,23 @@ public abstract class OperatorType {
     /**
      * Initialize the storage manager and the ack queue
      */
-    private void recoverySetup()
-    {
-        if(source == null)
-            this.currentMessageRecoveryManager=new RecoveryManager("output_handler_recovery"+ "origin"+".txt");
+    private void recoverySetup() {
+        Debug.printError("Beginning startup");
+        if (source == null)
+        {
+            this.lastProcessedWindowRecoveryManager = new RecoveryManager("output_handler_recovery" + "origin" + ".txt");
+        this.recoveryManagerForMessagesSentAndNotAcknowledged = new RecoveryManager("not_acked" + "origin" + ".txt");
+        this.lastMessageBySenderRecoveryManager = new RecoveryManager("last_message_by_sender" + "origin" + ".txt");
+    }
         else {
-            this.currentMessageRecoveryManager =
+            this.lastProcessedWindowRecoveryManager =
                     new RecoveryManager("output_handler_recovery" + source.toString()+".txt");
+            this.recoveryManagerForMessagesSentAndNotAcknowledged=new RecoveryManager("not_acked"+source.toString()+".txt");
+            this.lastMessageBySenderRecoveryManager=new RecoveryManager("last_message_by_sender"+source.toString()+".txt");
         }
-        this.socketsThatHaveSentCurrentMessage=Collections.synchronizedSet(new HashSet<>());
+
+
+        Debug.printVerbose("All managers were created");
     }
     
     //Here i aggregate data
@@ -97,54 +100,94 @@ public abstract class OperatorType {
     	while (Math.random() < 10) {
             List<DataKey> currentMsg = new LinkedList<>();
             //Put (and remove) at maximum this.size elements into currentMsg
-            this.sourceMsgQueue.drainTo(currentMsg, this.size);
+
             int itemNeeded = this.size - currentMsg.size();
             //i take n elements from the Queue
-            if (itemNeeded > 0)
-            {
-                for (int i = 0; i < itemNeeded; i++) {
-                    try {
-                        currentMsg.add(this.sourceMsgQueue.take());
 
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                for (int i = 0; i < itemNeeded; i++) {
+
+                        while(sourceMsgQueue.size()<=i)
+                        {
+                            try{
+                                synchronized (sourceMsgQueue)
+                                {
+                                    sourceMsgQueue.wait();
+                                }
+                            }
+                            catch (InterruptedException e)
+                            {
+                                Debug.printError(e);
+                            }
+                        }
+                        currentMsg.add(this.sourceMsgQueue.get(i));
+
                 }
-            }
+
 
             Debug.printVerbose("Starting elaboration of "+currentMsg.size()+" elements");
 
             float result = this.operationType(currentMsg.stream().map(DataKey::getValue).collect(Collectors.toList()));
-            List<Key> senders=currentMsg.stream().map(dk->dk.getAggregator()).collect(Collectors.toList());
-            
+            List<Key> senders=currentMsg.stream().map(d->d.getAggregator()).collect(Collectors.toList());
+
            DataKey messageData = new DataKey(result, new Key(this.source, ++sequenceNumber),senders);
             //I add datas to recovery manager
-            currentMsg.forEach(msg->currentMessageRecoveryManager.appendData(msg));
-            while(mustWait()) {
-                try {
-                    synchronized (stoppedByCrash) {
-                        stoppedByCrash.wait();
-                    };
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            executorService.submit(() -> sendMessage(messageData));
 
-            waitForEverySocketToSaveMessageInHisFile(messageData);
-
-            resetSendersSet();
-
-
-            for(int i=0;i<this.slide;i++)
+            while(lastMessageBySenderRecoveryManager==null)
             {
-            	DataKey d= currentMsg.remove(0);
-            	currentMessageRecoveryManager.removeDataFromList(d);
             }
 
+            currentMsg.forEach(msg-> lastProcessedWindowRecoveryManager.appendData(msg));
+
+
+
+            changeLastProcessedWindow(messageData);
+            DataKey aggregatedOnly=new DataKey(messageData.getData(),messageData.getAggregator(),new ArrayList<>());
+            recoveryManagerForMessagesSentAndNotAcknowledged.appendData(aggregatedOnly);
+            updateLastMessagesReceivedBySender(messageData.getSources().stream().map(d->new DataKey(0.0,d,new ArrayList<>())).collect(Collectors.toList()));
+
+            executorService.submit(() -> sendMessage(messageData));
+            slideWindow();
         }
     }
-     protected abstract float operationType(List<Float> streamDatas);
+
+
+    /**
+     * Acknowledge the messages which will never be needed again, and delete them from the queue
+     */
+    private void slideWindow()
+    {
+        Debug.printVerbose(dataSenders.toString());
+        List<DataKey> messagesToBeAcknowledgedAndRemoved=this.sourceMsgQueue.subList(0,this.slide);
+        if(source!=null)
+        messagesToBeAcknowledgedAndRemoved.stream()
+                .forEach(msg->msg.getSources().stream()
+                        .forEach(src->dataSenders.get(src.getNode()).sendAck(src)));
+        synchronized (sourceMsgQueue)
+        {
+            sourceMsgQueue.removeAll(messagesToBeAcknowledgedAndRemoved);
+        }
+    }
+
+    /**
+     * Modify the file containing the last message received from each socket
+     * @param sources
+     */
+    private void updateLastMessagesReceivedBySender(@NotNull  List<DataKey> sources) {
+        this.lastMessageBySenderRecoveryManager.keepOnlyTheMostRecentForEachSource(sources);
+    }
+
+
+    /**
+     * Append the given window to the file containing the last processed one, then delete the oldest value.
+     * @param messageData
+     */
+    private void changeLastProcessedWindow(DataKey messageData)
+    {
+        this.lastProcessedWindowRecoveryManager.appendData(messageData);
+        this.lastProcessedWindowRecoveryManager.removeDataOldestValue();
+    }
+
+    protected abstract float operationType(List<Float> streamDatas);
 
   
     
@@ -155,7 +198,8 @@ public abstract class OperatorType {
      */
     public void deploy()
     {
-        this.sourceMsgQueue = new LinkedBlockingQueue<>();
+        recoverySetup();
+        this.sourceMsgQueue = Collections.synchronizedList(new ArrayList<>());
         executorService = Executors.newCachedThreadPool();
         this.destination = new LinkedList<>();
 
@@ -233,11 +277,11 @@ public abstract class OperatorType {
 
     public void addToMessageQueue(DataKey messageData)
     {
-        try {
-            this.sourceMsgQueue.put(messageData);
-        } catch (InterruptedException e) {
-            Debug.printError(e);
-        }
+            this.sourceMsgQueue.add(messageData);
+            synchronized (sourceMsgQueue)
+            {
+                sourceMsgQueue.notifyAll();
+            }
     }
 
     private void sendMessage(DataKey messageData)
@@ -255,7 +299,7 @@ public abstract class OperatorType {
     {
     	this.dataSenders.put(position, socket);
     }
-    
+
     public int getSize()
     {
         return this.size;
@@ -265,41 +309,11 @@ public abstract class OperatorType {
         return this.slide;
     }
     
-    /**
-     * Wait for the given message to be written in all the files corresponding to the outgoing sockets
-     */
-    public void waitForEverySocketToSaveMessageInHisFile(DataKey messageData)
-    {
-    	synchronized (socketsThatHaveSentCurrentMessage) {
-    		try {
-    			while(socketsThatHaveSentCurrentMessage.size()<this.destination.size())
-    	    	{
-    	    	        Debug.printVerbose(socketsThatHaveSentCurrentMessage.toString());
-    	    	        Debug.printVerbose(destination.toString());
-    	    			socketsThatHaveSentCurrentMessage.wait();
-    	    	}
-    	
-			} catch (InterruptedException e) {
-				Debug.printDebug(e);
-			}
-    	}
-    }
-    
-    private void resetSendersSet()
-    {
-    	this.socketsThatHaveSentCurrentMessage=new HashSet<>();
-    }
 
-    /**
-     * Notify the OperatorType that the OperatorOutputQueue in input has sent the current message
-     * @param operator
-     */
-    public void pushOperatorToQueue(OperatorOutputQueue operator){
-        this.socketsThatHaveSentCurrentMessage.add(operator);
-        synchronized (socketsThatHaveSentCurrentMessage){
-            socketsThatHaveSentCurrentMessage.notify();
-        }
-    }
+    
+
+
+
 
     private boolean mustWait(){
         try {

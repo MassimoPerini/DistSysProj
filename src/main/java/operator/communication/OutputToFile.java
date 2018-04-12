@@ -42,8 +42,6 @@ public class OutputToFile implements OperatorOutputQueue {
                 FileWriter fileWriter=new FileWriter("output.txt");
                 fileWriter.write(msg.getData()+"");
                 fileWriter.flush();
-                this.dataFeeder.pushOperatorToQueue(this);
-                
             }
         }catch (Exception e)
         {
