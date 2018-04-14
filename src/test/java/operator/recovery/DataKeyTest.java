@@ -1,6 +1,5 @@
 package operator.recovery;
 
-import javafx.geometry.Pos;
 import org.junit.Test;
 import supervisor.Position;
 
@@ -35,4 +34,14 @@ public class DataKeyTest {
     }
 
 
+    @Test
+    public void hasSameSenderButOlderOrEqualSequenceNumber()
+    {
+        Position position1=new Position("pluto",2);
+        Key source1=new Key(position1,2);
+        Key source2=new Key(position1,3);
+        DataKey recent=new DataKey(0.0,source2,new ArrayList<>());
+        assertTrue(recent.hasOlderOrEqualSequenceNumberThanOther(source2));
+        assertFalse(recent.hasOlderOrEqualSequenceNumberThanOther(source1));
+    }
 }

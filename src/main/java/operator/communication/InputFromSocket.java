@@ -26,31 +26,38 @@ public class InputFromSocket implements OperatorInputQueue{
 	private final ObjectOutputStream socketOut;
 	private final BlockingQueue<Key> acksToSend;
 
+	private final Position positionOfTheOtherSide;
 
+	/**
+	 * The operator type which will process my data. This parameter is initialized when Input from Socket starts receiving
+	 */
+	private  OperatorType messagesAddressee;
 	
 	/**
 	 * Read elements from the given socket and push them to the file with given name
 	 * @param socket it's the source of the data
-	 * @param ownPosition
+	 * @param positionOfTheOtherSide
 	 */
-	public InputFromSocket(Socket socket, Position ownPosition) throws IOException {
+	public InputFromSocket(Socket socket, Position positionOfTheOtherSide) throws IOException {
 		this.inputSocket=socket;
         this.socketOut = (new ObjectOutputStream(this.inputSocket.getOutputStream()));
 		this.socketIn = (new ObjectInputStream(this.inputSocket.getInputStream()));
 
-	
+		this.positionOfTheOtherSide =new Position(socket.getInetAddress().toString(),socket.getPort());
 		acksToSend=new LinkedBlockingQueue<>();
+		Debug.printVerbose(positionOfTheOtherSide.toString());
 	}
 
 	@Override
 	public void startReceiving(OperatorType operatorType) {
+		messagesAddressee=operatorType;
 		new Thread(this::keepSendingAcksWhenReady).start();
 		while(true)
 		{
-			
 			try {
 
 				DataKey messageData = (DataKey) this.socketIn.readObject();
+				messageData.setAggregator(positionOfTheOtherSide);
 				operatorType.addToMessageQueue(messageData);
 				Debug.printVerbose("Received "+ messageData);
 			} catch (IOException e) {
@@ -72,12 +79,21 @@ public class InputFromSocket implements OperatorInputQueue{
 	
 	public void keepSendingAcksWhenReady()
 	{
-		try {
-			socketOut.writeObject(acksToSend.take());
-		} catch (IOException e) {
-			Debug.printError(e);
-		} catch (InterruptedException e) {
-			Debug.printError(e);
+		while(true)
+		{
+			try {
+				socketOut.writeObject(acksToSend.take());
+				Debug.printVerbose("Sending an ack");
+			} catch (IOException e) {
+				Debug.printError(e);
+			} catch (InterruptedException e) {
+				Debug.printError(e);
+			}
 		}
+	}
+
+	public Position getOtherSidePosition()
+	{
+		return positionOfTheOtherSide;
 	}
 }

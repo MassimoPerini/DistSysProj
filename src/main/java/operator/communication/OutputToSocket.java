@@ -1,6 +1,7 @@
 package operator.communication;
 
 import operator.recovery.DataKey;
+import operator.recovery.Key;
 import operator.types.OperatorType;
 import org.jetbrains.annotations.NotNull;
 import utils.Debug;
@@ -23,6 +24,9 @@ public class OutputToSocket implements OperatorOutputQueue{
     private ObjectOutputStream socketOut;
     private final ExecutorService executorService;
     private final BlockingQueue<DataKey> messageData;
+
+
+
     //this is the OperatorType that passes itself in order to stop sending datas to other outputSockets
     private final OperatorType dataFeeder;
     private final String addressToReconnectWith;
@@ -35,6 +39,7 @@ public class OutputToSocket implements OperatorOutputQueue{
         this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
         this.executorService = Executors.newCachedThreadPool();
         this.messageData = new LinkedBlockingQueue<>();
+
         this.dataFeeder = operatorType;
         //todo: check if both work
         this.addressToReconnectWith = socket.getInetAddress().toString();
@@ -46,6 +51,29 @@ public class OutputToSocket implements OperatorOutputQueue{
     {
 
         this.executorService.submit(this::keepSending);
+        this.executorService.submit(this::keepAcknowledging);
+    }
+
+    /**
+     * Read acks from the socket, then inform the feeder.
+     */
+    private void keepAcknowledging()
+    {
+        while(true)
+        {
+            try {
+
+                Key receivedAck=(Key)this.socketIn.readObject();
+                Debug.printVerbose("Received an ack: "+receivedAck);
+                dataFeeder.manageAck(receivedAck,this);
+            } catch (IOException e)
+            {
+                Debug.printError(e);
+            } catch (ClassNotFoundException e)
+            {
+                Debug.printError(e);
+            }
+        }
     }
 
     private void keepSending() {

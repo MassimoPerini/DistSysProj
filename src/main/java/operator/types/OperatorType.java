@@ -34,15 +34,30 @@ public abstract class OperatorType {
     private int sequenceNumber;
     
     private @Nullable Position source;
-    private transient @NotNull List<OperatorOutputQueue> destination;
-    //messageAddressees is the list of the next nodes
+
+    /**
+     * This map is used to retrieve the position of subsequent nodes that sent an ack.
+     * It is updated when new output queues are built.
+     * Both this and messageAddresses are needed because messageAddressees cannot be serialized (It contains sockets)
+     */
+    private transient @NotNull Map<OperatorOutputQueue,Position> destination;
+    /**
+     * messageAddressees is the list of the next nodes
+     * It is used to initialize the operator type.
+     */
     private final @NotNull List<Position> messageAddressees;
+
+
     private transient ExecutorService executorService;
     private final Object stoppedByCrash = new Object();
 
     private transient List<DataKey> sourceMsgQueue; //messaggi input -> processo
     //list of fallen forward nodes
     private Set<OutputToSocket> outputToSocketFallen;
+
+    /**
+     * The relation between the position of nodes which send me data and their InputFromSocket.
+     */
     private Map<Position, InputFromSocket> dataSenders;
     
     /**
@@ -76,7 +91,6 @@ public abstract class OperatorType {
      * Initialize the storage manager and the ack queue
      */
     private void recoverySetup() {
-        Debug.printError("Beginning startup");
         if (source == null)
         {
             this.lastProcessedWindowRecoveryManager = new RecoveryManager("output_handler_recovery" + "origin" + ".txt");
@@ -134,10 +148,10 @@ public abstract class OperatorType {
 
             while(lastMessageBySenderRecoveryManager==null)
             {
+                Debug.printError("Still null");
             }
 
             currentMsg.forEach(msg-> lastProcessedWindowRecoveryManager.appendData(msg));
-
 
 
             changeLastProcessedWindow(messageData);
@@ -145,8 +159,9 @@ public abstract class OperatorType {
             recoveryManagerForMessagesSentAndNotAcknowledged.appendData(aggregatedOnly);
             updateLastMessagesReceivedBySender(messageData.getSources().stream().map(d->new DataKey(0.0,d,new ArrayList<>())).collect(Collectors.toList()));
 
-            executorService.submit(() -> sendMessage(messageData));
             slideWindow();
+
+            executorService.submit(() -> sendMessage(messageData));
         }
     }
 
@@ -156,16 +171,17 @@ public abstract class OperatorType {
      */
     private void slideWindow()
     {
-        Debug.printVerbose(dataSenders.toString());
+
         List<DataKey> messagesToBeAcknowledgedAndRemoved=this.sourceMsgQueue.subList(0,this.slide);
         if(source!=null)
-        messagesToBeAcknowledgedAndRemoved.stream()
-                .forEach(msg->msg.getSources().stream()
-                        .forEach(src->dataSenders.get(src.getNode()).sendAck(src)));
-        synchronized (sourceMsgQueue)
         {
-            sourceMsgQueue.removeAll(messagesToBeAcknowledgedAndRemoved);
+            for(DataKey key:messagesToBeAcknowledgedAndRemoved)
+            {
+                    dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
+            }
         }
+        sourceMsgQueue.removeAll(messagesToBeAcknowledgedAndRemoved);
+
     }
 
     /**
@@ -201,14 +217,14 @@ public abstract class OperatorType {
         recoverySetup();
         this.sourceMsgQueue = Collections.synchronizedList(new ArrayList<>());
         executorService = Executors.newCachedThreadPool();
-        this.destination = new LinkedList<>();
+        this.destination = new HashMap<>();
 
         //We check if there's no socket description.
         //In case, it means the node is a leaf and we need to write on file the result
         if (messageAddressees.isEmpty())
         {
             //No socket output -> write on file
-            this.destination.add(new OutputToFile(this));
+            this.destination.put(new OutputToFile(this),null);
         }
         else
         {
@@ -220,7 +236,7 @@ public abstract class OperatorType {
                     try {
                         Socket socket = new Socket(socketRepr.getAddress(), socketRepr.getPort());
                         OutputToSocket outputToSocket = new OutputToSocket(socket, this);
-                        this.destination.add(outputToSocket);
+                        this.destination.put(outputToSocket,socketRepr);
                         keepLooping = false;
 
                     } catch (IOException e) {
@@ -235,7 +251,7 @@ public abstract class OperatorType {
 
         //todo: è corretta questa cosa?
         //Ciclo creando una coda di output per ogni destination
-        for (OperatorOutputQueue operatorOutputQueue : destination) {
+        for (OperatorOutputQueue operatorOutputQueue : destination.keySet()) {
             //Starting output threads. They will start to consume their queue. Right now they're waiting for datas
             operatorOutputQueue.start();
         }
@@ -264,6 +280,8 @@ public abstract class OperatorType {
                     Socket socket=serverSocket.accept();
 					Debug.printDebug("A new socket input!");
 					InputFromSocket receiver=new InputFromSocket(socket, source);
+					dataSenders.put(receiver.getOtherSidePosition(),receiver);
+					Debug.printVerbose(dataSenders.toString());
 					executorService.submit(()->receiver.startReceiving(this));
 				}
 			} catch (IOException e) {
@@ -286,7 +304,7 @@ public abstract class OperatorType {
 
     private void sendMessage(DataKey messageData)
     {
-        for (OperatorOutputQueue operatorOutputQueue : destination) {
+        for (OperatorOutputQueue operatorOutputQueue : destination.keySet()) {
             Debug.printVerbose(destination.toString());
             operatorOutputQueue.send(messageData);
 
@@ -334,6 +352,18 @@ public abstract class OperatorType {
         synchronized (stoppedByCrash) {
             stoppedByCrash.notify();
         }
+    }
+
+    /**
+     * Update the list of nodes that have received a certain message. If last, delete it from file
+     * @param receivedAck the message I sent before and that has now been acknowledged
+     * @param outputToSocket the socket I used to send the message (equivalent: the node to which I sent it)
+     */
+    public void manageAck(Key receivedAck, OutputToSocket outputToSocket)
+    {
+        Debug.printVerbose("Ack received: "+receivedAck);
+        Position ackSenderPosition=this.destination.get(outputToSocket);
+        this.recoveryManagerForMessagesSentAndNotAcknowledged.reactToAck(receivedAck,ackSenderPosition,this.destination.values());
     }
 
 }
