@@ -11,6 +11,7 @@ import java.io.FileReader;
 
 /**
  * Created by massimo on 02/03/18.
+ * This class extends operatorInputQueue, allowing an input from file.
  */
 public class InputFromFile implements OperatorInputQueue{
 

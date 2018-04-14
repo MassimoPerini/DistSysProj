@@ -14,7 +14,7 @@ import supervisor.Position;
 import utils.Debug;
 
 /**
- * This class receives input from one socket and writes it to a file
+ * This class receives input from one socket
  */
 public class InputFromSocket implements OperatorInputQueue{
 	
@@ -31,17 +31,20 @@ public class InputFromSocket implements OperatorInputQueue{
 	/**
 	 * Read elements from the given socket and push them to the file with given name
 	 * @param socket it's the source of the data
-	 * @param ownPosition
+	 * @param ownPosition todo: ci serve ownPosition?
 	 */
 	public InputFromSocket(Socket socket, Position ownPosition) throws IOException {
 		this.inputSocket=socket;
         this.socketOut = (new ObjectOutputStream(this.inputSocket.getOutputStream()));
 		this.socketIn = (new ObjectInputStream(this.inputSocket.getInputStream()));
-
-	
 		acksToSend=new LinkedBlockingQueue<>();
 	}
 
+	/**
+	 * this class receveis a DataKey. It and adds tit to the message Queue
+	 * It also spawns a new Thread that will send back acks then ready
+	 * @param operatorType
+	 */
 	@Override
 	public void startReceiving(OperatorType operatorType) {
 		new Thread(this::keepSendingAcksWhenReady).start();
@@ -49,7 +52,6 @@ public class InputFromSocket implements OperatorInputQueue{
 		{
 			
 			try {
-
 				DataKey messageData = (DataKey) this.socketIn.readObject();
 				operatorType.addToMessageQueue(messageData);
 				Debug.printVerbose("Received "+ messageData);

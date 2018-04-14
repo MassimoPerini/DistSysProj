@@ -12,6 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by massimo on 02/03/18.
+ * This class is used to write the result of the overall computation
  */
 public class OutputToFile implements OperatorOutputQueue {
 

@@ -21,9 +21,8 @@ import java.util.concurrent.Executors;
 /**
  * Created by massimo on 10/02/18.
  * This class it's the deamonSocket.
- * Once it is is started, it receives a gson with the type of the operations
+ * Once it is is started, it receives a gson with the type of the operators
  * and spawns a new Operator
- * todo: MessageSupervisor should also be used to communicate an HeatbeatRequest, under the assumption that nodes don't fall
  */
 public class DaemonSocket {
 
@@ -50,13 +49,13 @@ public class DaemonSocket {
                 .registerSubtype(ReplyHeartBeat.class)
                 .registerSubtype(LogMessageOperator.class)
                 ;
-        writeGson = new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory).create();  //setPrettyPrinting
+        writeGson = new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory).create();
         executorService = Executors.newCachedThreadPool();
-
     }
 
     /**
      * This method is called from the MainDaemon class as soon as it is created.
+     * I listen for new messages from the MainSupervisor
      */
     public void start(DaemonOperatorInfo daemonOperatorInfo)
     {
@@ -100,15 +99,18 @@ public class DaemonSocket {
             Debug.printError(e);
             e.printStackTrace();
         }
-        //receive
-        //Expected login here
+
     }
 
-    void send(@NotNull MessageOperator messageServer){
+    /**
+     * This method is used to send a messageOperator to the server. It can be the HeartBeat or a simple log.
+     * @param messageOperator
+     */
+    void send(@NotNull MessageOperator messageOperator){
         executorService.submit (() -> {
             try {
 
-                String res = writeGson.toJson(messageServer, MessageOperator.class);
+                String res = writeGson.toJson(messageOperator, MessageOperator.class);
                 Debug.printVerbose("DAEMON: SENDING " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
                 socketOut.println(res);
                 socketOut.flush();
