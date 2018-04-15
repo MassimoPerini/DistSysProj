@@ -5,18 +5,15 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import org.jetbrains.annotations.NotNull;
+import supervisor.Position;
 import utils.Debug;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
 /**
  * Created by higla on 24/02/2018.
@@ -65,7 +62,7 @@ public class RecoveryManager {
      * @param fileName is the name of the File that will be used for the path
      * @param dataKey is the value to append to the file
      */
-    private void appendDataInFileList(String fileName, DataKey dataKey){
+    private  void appendDataInFileList(String fileName, DataKey dataKey){
         String s;
         fileName = this.destinationFile;
         StringBuilder toConvertFromJSON = new StringBuilder();
@@ -135,33 +132,20 @@ public class RecoveryManager {
      * @param fileName is the name of the File that will be used for the path
      * @return the value drawn from the list.
      */
-    public DataKey drawDataFromFileList(String fileName){
+    public  DataKey drawDataFromFileList(String fileName){
         DataKey value = null;
-
 
             Type type = new TypeToken<List<DataKey>>() {}.getType();
             List<DataKey> datas = getAll();
-            if(datas != null) {
+
+        if(datas != null) {
                 value = datas.get(0);
                 datas.remove(value);
             }
-            try{
-                Path filePath = Paths.get(fileName);
-                BufferedWriter bw= Files.newBufferedWriter(filePath, TRUNCATE_EXISTING);
-                bw.write( new GsonBuilder().setPrettyPrinting().create().toJson(datas, type));
-                Debug.printVerbose(datas.toString());
-                bw.close();
-            }
-            catch(FileNotFoundException e)
-            {
-                Debug.printError("File was not found while reading it! - drawDataFromFileList()");
-            }
-            catch(IOException e)
-            {
-                Debug.printError("No value found! (IOException) - drawDataFromFileList()");
-            }
+            store(datas);
 
-            return value;
+        return value;
+
 
     }
 
@@ -182,16 +166,14 @@ public class RecoveryManager {
      * Save to file the given list of elements
      * @param toStore
      */
-    public synchronized void store(List<DataKey> toStore)
+    public  void store(List<DataKey> toStore)
     {
         Type type = new TypeToken<List<DataKey>>() {}.getType();
 
         try{
-            Path filePath = Paths.get(destinationFile);
-            BufferedWriter bw= Files.newBufferedWriter(filePath, TRUNCATE_EXISTING);
-            bw.write( new GsonBuilder().setPrettyPrinting().create().toJson(toStore, type));
-            Debug.printVerbose("New datas on file : " + toStore.toString());
-            bw.close();
+            FileWriter writer=new FileWriter(destinationFile);
+            writer.write( new GsonBuilder().setPrettyPrinting().create().toJson(toStore, type));
+            writer.close();
         }
         catch(FileNotFoundException e)
         {
@@ -202,6 +184,8 @@ public class RecoveryManager {
             Debug.printError("No file found!");
         }
     }
+
+
     public void removeDataOldestValue()
     {
         drawDataFromFileList(this.destinationFile);
@@ -230,7 +214,7 @@ public class RecoveryManager {
     /**
      * Return the list of all elements, or null if empty
      */
-    private List<DataKey> getAll()
+    private   List<DataKey> getAll()
     {
         String s;
         StringBuilder toConvertFromJSON = new StringBuilder();
@@ -265,10 +249,35 @@ public class RecoveryManager {
 
     }
 
+    /**
+     * Raturn the content of the file or an empty list
+     * @return
+     */
     private List<DataKey> getAllOrEmptyList()
     {
         List<DataKey> toRet=getAll();
         return toRet==null?new ArrayList<>():toRet;
+    }
+
+    /**
+     * Store into file the information that the message identified by receivedAck was received by the node located at
+     * acksenderposition.
+     * Moreover, all previous messages directed to the same node are implicitly acknowledged.
+     * @param receivedAck
+     * @param ackSenderPosition
+     * @param allAcksNeeded
+     */
+    public void reactToAck(Key receivedAck, Position ackSenderPosition, Collection<Position> allAcksNeeded)
+    {
+        List<DataKey> currentlyInFile=getAllOrEmptyList();
+        currentlyInFile.stream()
+                .filter(datakey->datakey.hasOlderOrEqualSequenceNumberThanOther(receivedAck))
+                .filter(correctMessage->!correctMessage.getSources().contains(ackSenderPosition))
+                .forEach(messageInNeedOfAck->messageInNeedOfAck.addSource(ackSenderPosition));
+        List<DataKey> toRemove=currentlyInFile.stream().filter(datakey->datakey.getSources().size()==allAcksNeeded.size())
+                .collect(Collectors.toList());
+        currentlyInFile.removeAll(toRemove);
+        store(currentlyInFile);
     }
 }
 

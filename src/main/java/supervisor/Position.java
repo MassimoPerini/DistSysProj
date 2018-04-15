@@ -67,6 +67,6 @@ public class Position implements Serializable{
 
 	@Override
 	public String toString() {
-		return  this.ipAddress + this.port;
+		return  this.ipAddress +":"+ this.port;
 	}
 }

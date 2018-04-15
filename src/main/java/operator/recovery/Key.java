@@ -51,4 +51,14 @@ public class Key implements Serializable{
     public Position getNode() {
 		return  node;
     }
+
+    public int getSequenceNumber()
+	{
+		return  sequenceNumber;
+	}
+
+    public void setSender(Position positionOfTheOtherSide)
+	{
+		this.node=positionOfTheOtherSide;
+    }
 }

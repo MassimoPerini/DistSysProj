@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import supervisor.Position;
 import utils.Debug;
 
 /**
@@ -103,5 +105,31 @@ public class DataKey implements Serializable{
     public boolean otherHasSameSenderButOlderSequenceNumber(DataKey currentlyInFile)
     {
         return this.aggregator.otherHasSameSenderButOlderSequenceNumber(currentlyInFile.getAggregator());
+    }
+
+
+    public boolean hasOlderOrEqualSequenceNumberThanOther(Key receivedAck)
+    {
+        return  this.aggregator.getSequenceNumber()<=receivedAck.getSequenceNumber();
+    }
+
+    /**
+     * Add a fake datakey to the sources of this datakey.
+     * This method is used by recovery manager to update the list of nodes that have acknowledged a message.
+     * @param ackSenderPosition
+     */
+    public void addSource(Position ackSenderPosition)
+    {
+        this.sources.add(new Key(ackSenderPosition,0));
+    }
+
+    /**
+     * Change the position of the sender.
+     * Useful since file reader can difficultly get his IP address, whilst subsequent receiver can easily.
+     * @param positionOfTheOtherSide
+     */
+    public void setAggregator(Position positionOfTheOtherSide)
+    {
+        this.aggregator.setSender(positionOfTheOtherSide);
     }
 }
