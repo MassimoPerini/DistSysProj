@@ -24,19 +24,22 @@ public class DataKey implements Serializable{
 	 */
     private Key aggregator;
     private List<Key> sources;
+    private String originalKey;
     
 
-    public DataKey(double data,Key aggregator,@Nullable List<Key> sources) {
+    public DataKey(String originalKey, double data,Key aggregator,@Nullable List<Key> sources) {
+        this.originalKey = originalKey;
         this.data = (float)data;
         this.aggregator=aggregator;
         if(sources!=null)
         	this.sources=new ArrayList<>(sources);
     }
 
-    
-   
+    public String getOriginalKey() {
+        return originalKey;
+    }
 
-	public float getData() {
+    public float getData() {
 
         return data;
     }

@@ -40,7 +40,7 @@ public class OutputToFile implements OperatorOutputQueue {
 
                 Debug.printVerbose("WRITING " + msg);
                 FileWriter fileWriter=new FileWriter("output.txt");
-                fileWriter.write(msg.getData()+"");
+                fileWriter.write(msg.getOriginalKey()+","+msg.getData());
                 fileWriter.flush();
             }
         }catch (Exception e)

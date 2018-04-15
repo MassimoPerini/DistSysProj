@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import operator.communication.*;
@@ -19,6 +16,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
 import utils.Debug;
+
+import javax.xml.crypto.Data;
 
 /**
  * Created by massimo on 11/02/18.
@@ -51,7 +50,9 @@ public abstract class OperatorType {
     private transient ExecutorService executorService;
     private final Object stoppedByCrash = new Object();
 
-    private transient List<DataKey> sourceMsgQueue; //messaggi input -> processo
+    private transient Map<String, List<DataKey>> sourceMsgQueue; //messaggi input -> processo
+    //private transient Set<String> sourceMsgKeys;
+
     //list of fallen forward nodes
     private Set<OutputToSocket> outputToSocketFallen;
 
@@ -111,10 +112,94 @@ public abstract class OperatorType {
     //Here i aggregate data
     public void execute() {
         //this condition is a while true loop
-    	while (Math.random() < 10) {
-            List<DataKey> currentMsg = new LinkedList<>();
+        Map<String, List<DataKey>> currentMsg = new HashMap<>();    //mappa contenente i messaggi da processare
+
+        while (Math.random() < 10) {
+            //List<DataKey> currentMsg = new LinkedList<>();
             //Put (and remove) at maximum this.size elements into currentMsg
 
+            List<String> changedKeys = new LinkedList<>();  //id dei messaggi nuovi
+
+            synchronized (sourceMsgQueue) {
+                while(this.sourceMsgQueue.size() == 0)  //se la mappa condivisa è vuota aspetta
+                {
+                    try {
+                        sourceMsgQueue.wait();
+                    } catch (InterruptedException e) {
+                        Debug.printError(e);
+                    }
+                }
+
+                for (Map.Entry<String, List<DataKey>> stringListEntry : this.sourceMsgQueue.entrySet()) {   //mappa condivisa -> mappa del thread
+                    if (currentMsg.containsKey(stringListEntry.getKey())) {
+                        currentMsg.get(stringListEntry.getKey()).addAll(stringListEntry.getValue());
+                    } else {
+                        currentMsg.put(stringListEntry.getKey(), stringListEntry.getValue());
+                    }
+                    changedKeys.add(stringListEntry.getKey());
+                }
+                this.sourceMsgQueue.clear();    //una volta che ho "scaricato" la mappa condivisa la svuoto
+            }
+
+            // ---- ended copy, now aggregates
+            //Map<String, List<DataKey>> results = new HashMap<>();
+            Debug.printVerbose(" start computation");
+
+            for (Map.Entry<String, List<DataKey>> stringListEntry : currentMsg.entrySet()) {
+                System.out.println(stringListEntry.getKey());
+                for (DataKey dataKey : stringListEntry.getValue()) {
+                    System.out.println("----------> "+dataKey.getValue());
+                }
+                System.out.println("");
+            }
+
+
+            for (String changedKey : changedKeys) { //aggrego i dati per chiave
+                List<DataKey> data = currentMsg.get(changedKey);
+                /*if (data.size() > this.size)
+                {
+                    results.put(changedKey, new LinkedList<>());
+                }*/
+                while (data.size() >= this.size)
+                {
+                    List<DataKey> subRes = data.subList(0, this.size);
+                    float result = this.operationType(subRes.stream().map(DataKey::getValue).collect(Collectors.toList()));
+                    List<Key> senders=subRes.stream().map(DataKey::getAggregator).collect(Collectors.toList());
+                    DataKey messageData = new DataKey(changedKey, result, new Key(this.source, ++sequenceNumber),senders);
+                    //results.get(changedKey).add(messageData);
+                    Debug.printVerbose(" --------    result: "+changedKey+" : "+result);
+
+                    List<DataKey> removeEl = data.subList(0, this.slide);
+                    removeEl.clear();
+
+                    // ------ send
+                    /*
+                    while(lastMessageBySenderRecoveryManager==null)
+                    {
+                        Debug.printError("Still null");
+                    }
+
+                    currentMsg.forEach(msg-> lastProcessedWindowRecoveryManager.appendData(msg));
+
+
+                    changeLastProcessedWindow(messageData);
+                    DataKey aggregatedOnly=new DataKey(messageData.getOriginalKey(), messageData.getData(),messageData.getAggregator(),new ArrayList<>());
+                    recoveryManagerForMessagesSentAndNotAcknowledged.appendData(aggregatedOnly);
+                    updateLastMessagesReceivedBySender(messageData.getSources().stream().map(d->new DataKey(0.0,d,new ArrayList<>())).collect(Collectors.toList()));
+
+                    slideWindow();
+                    */
+
+                    executorService.submit(() -> sendMessage(messageData));
+
+                }
+            }
+            Debug.printVerbose(" end computation");
+
+
+            //send
+
+            /*
             int itemNeeded = this.size - currentMsg.size();
             //i take n elements from the Queue
 
@@ -137,7 +222,6 @@ public abstract class OperatorType {
 
                 }
 
-
             Debug.printVerbose("Starting elaboration of "+currentMsg.size()+" elements");
 
             float result = this.operationType(currentMsg.stream().map(DataKey::getValue).collect(Collectors.toList()));
@@ -145,23 +229,12 @@ public abstract class OperatorType {
 
            DataKey messageData = new DataKey(result, new Key(this.source, ++sequenceNumber),senders);
             //I add datas to recovery manager
-
-            while(lastMessageBySenderRecoveryManager==null)
-            {
-                Debug.printError("Still null");
-            }
-
-            currentMsg.forEach(msg-> lastProcessedWindowRecoveryManager.appendData(msg));
+            */
 
 
-            changeLastProcessedWindow(messageData);
-            DataKey aggregatedOnly=new DataKey(messageData.getData(),messageData.getAggregator(),new ArrayList<>());
-            recoveryManagerForMessagesSentAndNotAcknowledged.appendData(aggregatedOnly);
-            updateLastMessagesReceivedBySender(messageData.getSources().stream().map(d->new DataKey(0.0,d,new ArrayList<>())).collect(Collectors.toList()));
 
-            slideWindow();
-
-            executorService.submit(() -> sendMessage(messageData));
+            changedKeys.clear();
+            //results.clear();
         }
     }
 
@@ -171,7 +244,7 @@ public abstract class OperatorType {
      */
     private void slideWindow()
     {
-
+        /*
         List<DataKey> messagesToBeAcknowledgedAndRemoved=this.sourceMsgQueue.subList(0,this.slide);
         if(source!=null)
         {
@@ -181,6 +254,7 @@ public abstract class OperatorType {
             }
         }
         sourceMsgQueue.removeAll(messagesToBeAcknowledgedAndRemoved);
+        */
 
     }
 
@@ -215,7 +289,9 @@ public abstract class OperatorType {
     public void deploy()
     {
         recoverySetup();
-        this.sourceMsgQueue = Collections.synchronizedList(new ArrayList<>());
+        this.sourceMsgQueue = new ConcurrentHashMap<>();
+        //this.sourceMsgKeys = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+
         executorService = Executors.newCachedThreadPool();
         this.destination = new HashMap<>();
 
@@ -295,11 +371,24 @@ public abstract class OperatorType {
 
     public void addToMessageQueue(DataKey messageData)
     {
-            this.sourceMsgQueue.add(messageData);
-            synchronized (sourceMsgQueue)
+        //this.sourceMsgQueue.put(messageData.getOriginalKey(), messageData);
+        //this.sourceMsgKeys.add(messageData.getOriginalKey());
+        //this.sourceMsgKeys.put(messageData.getOriginalKey());
+        //this.sourceMsgQueue.add(messageData);
+        synchronized (sourceMsgQueue)
+        {
+            if (this.sourceMsgQueue.containsKey(messageData.getOriginalKey()))
             {
-                sourceMsgQueue.notifyAll();
+                this.sourceMsgQueue.get(messageData.getOriginalKey()).add(messageData);
             }
+            else{
+                List<DataKey> dataKeys = new LinkedList<>();
+                dataKeys.add(messageData);
+                this.sourceMsgQueue.put(messageData.getOriginalKey(), dataKeys);
+            }
+
+            sourceMsgQueue.notifyAll();
+        }
     }
 
     private void sendMessage(DataKey messageData)
