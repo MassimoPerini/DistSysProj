@@ -15,7 +15,8 @@ import utils.Debug;
 public class DataKey implements Serializable{
 
     private static final long serialVersionUID = -189729754032863167L;
-
+	
+	
 	private float data;
 	/**
 	 * id+ sequence number of the node which created the message eg a sum (id 13, s.n. 4) receives 2,4. 
@@ -23,20 +24,28 @@ public class DataKey implements Serializable{
 	 */
     private Key aggregator;
     private List<Key> sources;
+    private String originalKey;
     
 
-    public DataKey(double data,Key aggregator,@Nullable List<Key> sources) {
+    public DataKey(String originalKey, double data,Key aggregator,@Nullable List<Key> sources) {
+        this.originalKey = originalKey;
         this.data = (float)data;
         this.aggregator=aggregator;
         if(sources!=null)
         	this.sources=new ArrayList<>(sources);
     }
 
-	public float getData() {
+    public String getOriginalKey() {
+        return originalKey;
+    }
+
+    public float getData() {
+
         return data;
     }
     //todo: pick one, getData or getValue()
     public float getValue() {
+
         return data;
     }
     public void setData(int data) {

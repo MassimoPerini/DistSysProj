@@ -34,7 +34,8 @@ public class InputFromFile implements OperatorInputQueue{
             while ((readLine = b.readLine()) != null) {
 
             	Key sender=new Key(null, ++conta);
-            	DataKey messageData = new DataKey(Double.parseDouble(readLine), sender,null);
+            	String [] row = readLine.split(",");
+            	DataKey messageData = new DataKey(row[0], Double.parseDouble(row[1]), sender,null);
                 operatorType.addToMessageQueue(messageData);
                 Debug.printVerbose("Printo" + this.conta);
                 //Thread.sleep((long)(Math.random()*2000));
