@@ -1,1 +1,30 @@
-{"vertices":{"1":{"id":1,"data":{"jarFile":"","outJson":"{\"type\":\"Sum\",\"size\":2,\"slide\":2,\"sequenceNumber\":0,\"messageAddressees\":[{\"ipAddress\":\"127.0.0.1\",\"port\":1340}],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{},\"currentMessageRecoveryManager\":{\"destinationFile\":\"output_handler_recoveryorigin.txt\"},\"socketsThatHaveSentCurrentMessage\":[]}","ownPosition":{"ipAddress":"127.0.0.1","port":1340}},"neighbours":{"2":0.0}},"2":{"id":2,"data":{"jarFile":"","outJson":"{\"type\":\"Sum\",\"size\":3,\"slide\":3,\"sequenceNumber\":0,\"source\":{\"ipAddress\":\"127.0.0.1\",\"port\":1340},\"messageAddressees\":[],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{},\"currentMessageRecoveryManager\":{\"destinationFile\":\"output_handler_recovery127.0.0.11340.txt\"},\"socketsThatHaveSentCurrentMessage\":[]}","ownPosition":{"ipAddress":"127.0.0.1","port":1341}},"neighbours":{}}}}
+{
+  "vertices": {
+    "1": {
+      "id": 1,
+      "data": {
+        "jarFile": "",
+        "outJson": "{\"type\":\"Sum\",\"size\":2,\"slide\":2,\"parallelizationLevel\":1,\"exactPosition\":{\"ipAddress\":\"10.169.220.48\",\"port\":12345},\"sequenceNumber\":0,\"portToUseToConnectToPosition\":[{\"ipAddress\":\"127.0.0.1\",\"port\":1341}],\"portToUseToConnectToPositionPort\":[51234],\"messageAddressees\":[{\"ipAddress\":\"10.169.220.48\",\"port\":1340}],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
+        "ownPosition": {
+          "ipAddress": "10.169.220.48",
+          "port": 1340
+        }
+      },
+      "neighbours": {
+        "2": 0.0
+      }
+    },
+    "2": {
+      "id": 2,
+      "data": {
+        "jarFile": "",
+        "outJson": "{\"type\":\"Sum\",\"size\":3,\"slide\":3,\"parallelizationLevel\":1,\"exactPosition\":{\"ipAddress\":\"10.169.220.48\",\"port\":12346},\"sequenceNumber\":0,\"source\":{\"ipAddress\":\"10.169.220.48\",\"port\":1340},\"portToUseToConnectToPosition\":[],\"portToUseToConnectToPositionPort\":[],\"messageAddressees\":[],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
+        "ownPosition": {
+          "ipAddress": "127.0.0.1",
+          "port": 1341
+        }
+      },
+      "neighbours": {}
+    }
+  }
+}

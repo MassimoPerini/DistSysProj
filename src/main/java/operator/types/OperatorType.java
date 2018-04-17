@@ -1,12 +1,16 @@
 package operator.types;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+import javafx.geometry.Pos;
 import operator.communication.*;
 import operator.recovery.DataKey;
 import operator.recovery.Key;
@@ -25,11 +29,12 @@ import javax.xml.crypto.Data;
  * Represents the generic type of operator
  *
  */
-public abstract class OperatorType {
+public abstract class OperatorType implements Serializable {
 
     final int size;
     final int slide;
-    
+    final int parallelizationLevel;
+    final Position exactPosition;
     private int sequenceNumber;
     
     private @Nullable Position source;
@@ -40,6 +45,12 @@ public abstract class OperatorType {
      * Both this and messageAddresses are needed because messageAddressees cannot be serialized (It contains sockets)
      */
     private transient @NotNull Map<OperatorOutputQueue,Position> destination;
+
+    /**
+     * this variable is used to guarantee to have the same port connection
+     */
+    private @NotNull List<Position> portToUseToConnectToPosition;
+    private @NotNull List<Integer> portToUseToConnectToPositionPort;
     /**
      * messageAddressees is the list of the next nodes
      * It is used to initialize the operator type.
@@ -50,6 +61,8 @@ public abstract class OperatorType {
     private transient ExecutorService executorService;
     private final Object stoppedByCrash = new Object();
 
+    //'String' is the address of the data sender
+    //the List is the dataKey structure that the sender sends
     private transient Map<String, List<DataKey>> sourceMsgQueue; //messaggi input -> processo
     //private transient Set<String> sourceMsgKeys;
 
@@ -62,9 +75,9 @@ public abstract class OperatorType {
     private Map<Position, InputFromSocket> dataSenders;
     
     /**
-     * This object is used to store the last processed window
+     * This object is used to store the last processed window -output_handler_recovery-
      */
-    private RecoveryManager lastProcessedWindowRecoveryManager;
+    private transient RecoveryManager lastProcessedWindowRecoveryManager;
 
     /**
      * This file contains all the messages that must be stored because addressees haven't received them yet.
@@ -72,19 +85,29 @@ public abstract class OperatorType {
      * Each source represents a node having acknowledged the message.
      * The list of sources is updated when acks are received.
      */
-    private RecoveryManager recoveryManagerForMessagesSentAndNotAcknowledged;
+    private transient RecoveryManager recoveryManagerForMessagesSentAndNotAcknowledged;
 
-    private  RecoveryManager lastMessageBySenderRecoveryManager;
+    private transient RecoveryManager lastMessageBySenderRecoveryManager;
+    /*
+    public OperatorType(){
+        this.messageAddressees = new LinkedList<>();
+        this.size = 0;
+        this.slide = 0;
+    }*/
 
-
-    public OperatorType(@NotNull List<Position> destination, int size, int slide, @Nullable Position socket)
+    public OperatorType(@NotNull List<Position> messageAddressees, int size, int slide,int parallelizationLevel,
+                        @Nullable Position socket, Position exactPosition)
     {
-        this.messageAddressees = destination;
+        this.messageAddressees = messageAddressees;
         this.size = size;
         this.slide = slide;
+        this.parallelizationLevel = parallelizationLevel;
+        this.exactPosition = exactPosition;
         this.source = socket;
         dataSenders=new HashMap<>();
         outputToSocketFallen = new HashSet<>();
+        //this.portToUseToConnectToPosition = new HashMap<>();
+        //this.destination = new HashMap<>();
         recoverySetup();
     }
     
@@ -100,9 +123,9 @@ public abstract class OperatorType {
     }
         else {
             this.lastProcessedWindowRecoveryManager =
-                    new RecoveryManager("output_handler_recovery" + source.toString()+".txt");
-            this.recoveryManagerForMessagesSentAndNotAcknowledged=new RecoveryManager("not_acked"+source.toString()+".txt");
-            this.lastMessageBySenderRecoveryManager=new RecoveryManager("last_message_by_sender"+source.toString()+".txt");
+                    new RecoveryManager("output_handler_recovery" + source.toStringFile()+".txt");
+            this.recoveryManagerForMessagesSentAndNotAcknowledged=new RecoveryManager("not_acked"+source.toStringFile()+".txt");
+            this.lastMessageBySenderRecoveryManager=new RecoveryManager("last_message_by_sender"+source.toStringFile()+".txt");
         }
 
 
@@ -111,11 +134,17 @@ public abstract class OperatorType {
     
     //Here i aggregate data
     public void execute() {
+        /*
+        How does parallelization works
+        We have two maps.
+        sourceMsgQueue is shared among all threads
+        changedKeys is just owned by the proper thread
+         */
+
         //this condition is a while true loop
         Map<String, List<DataKey>> currentMsg = new HashMap<>();    //mappa contenente i messaggi da processare
 
         while (Math.random() < 10) {
-            //List<DataKey> currentMsg = new LinkedList<>();
             //Put (and remove) at maximum this.size elements into currentMsg
 
             List<String> changedKeys = new LinkedList<>();  //id dei messaggi nuovi
@@ -129,7 +158,7 @@ public abstract class OperatorType {
                         Debug.printError(e);
                     }
                 }
-
+                //here i take values from the global map
                 for (Map.Entry<String, List<DataKey>> stringListEntry : this.sourceMsgQueue.entrySet()) {   //mappa condivisa -> mappa del thread
                     if (currentMsg.containsKey(stringListEntry.getKey())) {
                         currentMsg.get(stringListEntry.getKey()).addAll(stringListEntry.getValue());
@@ -144,51 +173,46 @@ public abstract class OperatorType {
             // ---- ended copy, now aggregates
             //Map<String, List<DataKey>> results = new HashMap<>();
             Debug.printVerbose(" start computation");
-
+            //printing data
             for (Map.Entry<String, List<DataKey>> stringListEntry : currentMsg.entrySet()) {
-                System.out.println(stringListEntry.getKey());
+                Debug.printVerbose(stringListEntry.getKey());
                 for (DataKey dataKey : stringListEntry.getValue()) {
-                    System.out.println("----------> "+dataKey.getValue());
+                    Debug.printVerbose("----------> " + dataKey.getValue());
                 }
-                System.out.println("");
             }
 
-
+            //For each tuples i remember the keys i added into the local map, to optimize
             for (String changedKey : changedKeys) { //aggrego i dati per chiave
                 List<DataKey> data = currentMsg.get(changedKey);
-                /*if (data.size() > this.size)
-                {
-                    results.put(changedKey, new LinkedList<>());
-                }*/
+                //for those data i check if they changed
+                //i check if i can pick enough data with window size
                 while (data.size() >= this.size)
                 {
+                    //i take a list of Datakeys
                     List<DataKey> subRes = data.subList(0, this.size);
                     float result = this.operationType(subRes.stream().map(DataKey::getValue).collect(Collectors.toList()));
                     List<Key> senders=subRes.stream().map(DataKey::getAggregator).collect(Collectors.toList());
+                    //this is the aggregated result:
                     DataKey messageData = new DataKey(changedKey, result, new Key(this.source, ++sequenceNumber),senders);
-                    //results.get(changedKey).add(messageData);
+
                     Debug.printVerbose(" --------    result: "+changedKey+" : "+result);
 
-                    List<DataKey> removeEl = data.subList(0, this.slide);
-                    removeEl.clear();
 
-                    // ------ send
-                    /*
-                    while(lastMessageBySenderRecoveryManager==null)
-                    {
-                        Debug.printError("Still null");
-                    }
-
-                    currentMsg.forEach(msg-> lastProcessedWindowRecoveryManager.appendData(msg));
-
-
+                    //1- Appending processed data to -output_handler_recovery-
                     changeLastProcessedWindow(messageData);
-                    DataKey aggregatedOnly=new DataKey(messageData.getOriginalKey(), messageData.getData(),messageData.getAggregator(),new ArrayList<>());
-                    recoveryManagerForMessagesSentAndNotAcknowledged.appendData(aggregatedOnly);
-                    updateLastMessagesReceivedBySender(messageData.getSources().stream().map(d->new DataKey(0.0,d,new ArrayList<>())).collect(Collectors.toList()));
 
-                    slideWindow();
-                    */
+                    DataKey aggregatedOnly=new DataKey(messageData.getOriginalKey(), messageData.getData(),messageData.getAggregator(),new ArrayList<>());
+
+                    //2- Appending data not aggregated to not acked file
+                    recoveryManagerForMessagesSentAndNotAcknowledged.appendData(aggregatedOnly);
+
+                    //3- we tell the recovery manager the keys of the new arrived elements
+                    updateLastMessagesReceivedBySender(messageData.getSources().stream().map(
+                            d-> new DataKey(messageData.getOriginalKey(), 0.0,d,new ArrayList<>()))
+                            .collect(Collectors.toList()));
+
+                    slideWindow(data);
+
 
                     executorService.submit(() -> sendMessage(messageData));
 
@@ -232,7 +256,7 @@ public abstract class OperatorType {
             */
 
 
-
+            //we use this to allow precedent optimization
             changedKeys.clear();
             //results.clear();
         }
@@ -240,21 +264,23 @@ public abstract class OperatorType {
 
 
     /**
-     * Acknowledge the messages which will never be needed again, and delete them from the queue
+     * Acknowledge window size
+     * Delete window slide from memory
+     * @param data
      */
-    private void slideWindow()
+    private void slideWindow(List<DataKey> data)
     {
-        /*
-        List<DataKey> messagesToBeAcknowledgedAndRemoved=this.sourceMsgQueue.subList(0,this.slide);
+        List<DataKey> removeEl = data.subList(0, this.slide);
+        List<DataKey> toSendAck = data.subList(0, this.size);
+
         if(source!=null)
         {
-            for(DataKey key:messagesToBeAcknowledgedAndRemoved)
+            for(DataKey key:toSendAck)
             {
                     dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
             }
         }
-        sourceMsgQueue.removeAll(messagesToBeAcknowledgedAndRemoved);
-        */
+        removeEl.clear();
 
     }
 
@@ -310,7 +336,16 @@ public abstract class OperatorType {
                 do {
                     //for all position we try to open a new socket
                     try {
-                        Socket socket = new Socket(socketRepr.getAddress(), socketRepr.getPort());
+                        /*
+                        Position exactPosition = source==null? new Position(InetAddress.getLocalHost().
+                                getCanonicalHostName(),
+                                12345):source;
+                        */
+                        Socket socket = new Socket();
+                        Debug.printVerbose(this.exactPosition.toString());
+                        socket.bind(new InetSocketAddress(this.exactPosition.getAddress(), this.exactPosition.getPort()));
+                        socket.connect(new InetSocketAddress(socketRepr.getAddress(), socketRepr.getPort()));
+
                         OutputToSocket outputToSocket = new OutputToSocket(socket, this);
                         this.destination.put(outputToSocket,socketRepr);
                         keepLooping = false;
@@ -318,6 +353,7 @@ public abstract class OperatorType {
                     } catch (IOException e) {
                         //If socket isn't ready i cycle waiting for it to be ready
                         Debug.printDebug(e);
+                        //todo: check here
                         Debug.printDebug("I can't establish connection to the other node input! (OperatorType)");
                         keepLooping = true;
                     }
@@ -453,6 +489,11 @@ public abstract class OperatorType {
         Debug.printVerbose("Ack received: "+receivedAck);
         Position ackSenderPosition=this.destination.get(outputToSocket);
         this.recoveryManagerForMessagesSentAndNotAcknowledged.reactToAck(receivedAck,ackSenderPosition,this.destination.values());
+    }
+
+    public void setPortToUseToConnectToPosition(List<Position> portToUseToConnectToPosition, List<Integer> portToUseToConnectToPort){
+        this.portToUseToConnectToPosition = portToUseToConnectToPosition;
+        this.portToUseToConnectToPositionPort = portToUseToConnectToPort;
     }
 
 }

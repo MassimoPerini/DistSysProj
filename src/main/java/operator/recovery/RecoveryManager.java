@@ -62,69 +62,22 @@ public class RecoveryManager {
      * @param fileName is the name of the File that will be used for the path
      * @param dataKey is the value to append to the file
      */
-    private  void appendDataInFileList(String fileName, DataKey dataKey){
-        String s;
-        fileName = this.destinationFile;
-        StringBuilder toConvertFromJSON = new StringBuilder();
-        try
-        {
-            FileReader fr=new FileReader(fileName);
-            Debug.printDebug("Reading json from file: "+fileName);
-            BufferedReader br=new BufferedReader(fr);
-
-            while((s=br.readLine())!=null)
-            {
-                toConvertFromJSON.append(s);
-
-            }
-            Type type = new TypeToken<List<DataKey>>() {}.getType();
-            List<DataKey> datas = new Gson().fromJson(toConvertFromJSON.toString(), type);
-            if(datas != null) {
-                //i check if dataKey isn't already in the file
-                for (DataKey data : datas) {
-                    //TODO: do we want to handle diffrently?
-                    if(data.equals(dataKey)){
-                        return;
-                    }
-
+    private synchronized void appendDataInFileList(String fileName, DataKey dataKey){
+        List<DataKey> datas = getAll();
+        if(datas != null) {
+            //i check if dataKey isn't already in the file
+            for (DataKey data : datas) {
+                if(data.equals(dataKey)){
+                    return;
                 }
-                datas.add(dataKey);
             }
-            else{
-                datas = new ArrayList<>();
-                datas.add(dataKey);
-            }
-            try{
-
-           //     Path filePath = Paths.get(fileName);
-                FileWriter writer=new FileWriter(fileName);
-
-             //   BufferedWriter bufferedWriter= Files.newBufferedWriter(filePath, TRUNCATE_EXISTING);
-                writer.write( new GsonBuilder().setPrettyPrinting().create().toJson(datas, type));
-                Debug.printVerbose("Data read : " + datas.toString());
-                writer.close();
-
-            }
-            catch(FileNotFoundException e)
-            {
-                Debug.printError("File was not found while trying to add data! - appendDataInFileList()");
-            }
-            catch(IOException e)
-            {
-                Debug.printError("An error has occured while extrecting data from file! (IOException)- appendDataInFileList()");
-            }
-
-            br.close();
+            datas.add(dataKey);
         }
-        catch(FileNotFoundException e)
-        {
-            Debug.printError("Error1, file not found while appending data! This file "+ fileName.toString()
-            + " was not found");
+        else{
+            datas = new ArrayList<>();
+            datas.add(dataKey);
         }
-        catch(IOException e)
-        {
-            Debug.printError("Error2, IO exception! From this file " + fileName.toString());
-        }
+        store(datas);
     }
 
     /**
@@ -166,12 +119,12 @@ public class RecoveryManager {
      * Save to file the given list of elements
      * @param toStore
      */
-    public  void store(List<DataKey> toStore)
+    public synchronized void store(List<DataKey> toStore)
     {
         Type type = new TypeToken<List<DataKey>>() {}.getType();
 
         try{
-            FileWriter writer=new FileWriter(destinationFile);
+            FileWriter writer=new FileWriter(destinationFile, false);
             writer.write( new GsonBuilder().setPrettyPrinting().create().toJson(toStore, type));
             writer.close();
         }
@@ -188,7 +141,8 @@ public class RecoveryManager {
 
     public void removeDataOldestValue()
     {
-        drawDataFromFileList(this.destinationFile);
+        if (getAllOrEmptyList().size() > 1)
+            drawDataFromFileList(this.destinationFile);
     }
 
     /**
@@ -214,7 +168,7 @@ public class RecoveryManager {
     /**
      * Return the list of all elements, or null if empty
      */
-    private   List<DataKey> getAll()
+    private synchronized List<DataKey> getAll()
     {
         String s;
         StringBuilder toConvertFromJSON = new StringBuilder();

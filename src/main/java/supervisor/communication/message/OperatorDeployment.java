@@ -15,6 +15,9 @@ import utils.Debug;
 
 import java.io.File;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by massimo on 11/02/18.
@@ -27,7 +30,7 @@ public class OperatorDeployment implements MessageSupervisor {
     private final String jarFile;
     private String outJson;
     private final Position ownPosition;
-
+    //private final OperatorType operatorType;
     public Position getOwnPosition() {
         return ownPosition;
     }
@@ -40,16 +43,15 @@ public class OperatorDeployment implements MessageSupervisor {
 
 
 
-    public OperatorDeployment(@NotNull OperatorType operatorType, String jarFile, Position position)
+    public OperatorDeployment(@NotNull OperatorType operatorType, String jarFile, Position position
+                              )
     {
-        //this.operatorType = operatorType;
         this.jarFile = jarFile;
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(OperatorType.class, "type")
                 .registerSubtype(Sum.class);
         this.ownPosition = position;
         Gson gson = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
         outJson = gson.toJson(operatorType, OperatorType.class);
-
 
     }
     /***
@@ -118,4 +120,8 @@ public class OperatorDeployment implements MessageSupervisor {
 
         }
     }
+    /*
+    public OperatorType getOperatorType(){
+        return this.operatorType;
+    }*/
 }

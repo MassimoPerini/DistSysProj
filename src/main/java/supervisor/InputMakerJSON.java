@@ -19,8 +19,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.LinkedList;
-import java.util.List;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.*;
 
 /**
  * Created by higla on 21/02/2018.
@@ -31,16 +32,58 @@ public class InputMakerJSON {
         Debug.setLevel(3);
         Debug.printVerbose("Main inputMaker started");
         Gson writeGson;
+        Position firstSocket;
+        try {
+            firstSocket = new Position(InetAddress.getLocalHost().
+                    getCanonicalHostName(), 1340);
+        }
+        catch (UnknownHostException e){
+            firstSocket = new Position("127.0.0.1", 1340);
+        }
 
-        Position firstSocket = new Position("127.0.0.1", 1340);
         Position secondSocket = new Position ("127.0.0.1", 1341);
+        Position thirdSocket = null;
+        List<Position> emptyListPosition = new ArrayList<>();
+        List<Integer> emptyListInteger = new ArrayList<>();
+
+        List<Position> listPositionFirst = new ArrayList<>();
+        List<Integer> listIntegerFirst = new ArrayList<>();
+        listPositionFirst.add(secondSocket);
+        listIntegerFirst.add(51234);
+        Position pos1;
+        Position pos2;
+        try {
+            pos1 = new Position(InetAddress.getLocalHost().
+                    getCanonicalHostName(), 12345);
+            pos2 = new Position(InetAddress.getLocalHost().
+                    getCanonicalHostName(), 12346);
+        }
+        catch (UnknownHostException e){
+            pos1 = new Position("127.0.0.1", 12345);
+            pos2 = new Position("127.0.0.1", 12346);
+        }
+
+
 
         List<Position> out = new LinkedList<>();
         out.add(firstSocket);
+        //source dove apro il sever
+        //out lista di gente a cui devo inviare
+        //exactPosition
+        //position deve avere IP uguale a first socket.. => locale vs 10.... non funziona
+        OperatorType operatorOne = new Sum(2,2, 1, null, out, pos1);
+        OperatorType operatorTwo = new Sum(3,3, 1, firstSocket, new LinkedList<>(), pos2);
+        /* todo: a cosa servivano esattamente?
+        operatorOne.setPortToUseToConnectToPosition(listPositionFirst, listIntegerFirst);
+        operatorTwo.setPortToUseToConnectToPosition(emptyListPosition, emptyListInteger);
+        */
+        OperatorDeployment firstOperator = new OperatorDeployment(
+                operatorOne, "", firstSocket);
+        OperatorDeployment secondOperator = new OperatorDeployment(
+                operatorTwo, "", secondSocket);
 
-        OperatorDeployment firstOperator = new OperatorDeployment(new Sum(2,2, null, out), "", firstSocket);
-        OperatorDeployment secondOperator = new OperatorDeployment(new Sum(3,3, firstSocket, new LinkedList<>()), "", secondSocket);
         //OperatorDeployment thirdOperator = new OperatorDeployment(new Sum(4,4, null, new LinkedList<>()), "");
+        //firstOperator.getOperatorType().getPortToUseToConnectToPosition().put(firstSocket, 51234);
 
         Graph<OperatorDeployment> g =new Graph<>();
         Vertex<OperatorDeployment> v1=new Vertex<>(1,firstOperator);
@@ -57,10 +100,14 @@ public class InputMakerJSON {
 
         RuntimeTypeAdapterFactory typeAdapterFactory = RuntimeTypeAdapterFactory.of(MessageSupervisor.class, "type")
                 .registerSubtype(OperatorDeployment.class);
+        /*
+        RuntimeTypeAdapterFactory typeAdapterFactory2 = RuntimeTypeAdapterFactory.of(Position.class, "type")
+                .registerSubtype(Position.class);
+        */
 
-
-        writeGson = new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory)
-                //.setPrettyPrinting()
+        writeGson = new GsonBuilder().enableComplexMapKeySerialization().registerTypeAdapterFactory(typeAdapterFactory)
+                //.registerTypeAdapterFactory(typeAdapterFactory2)
+                .setPrettyPrinting()
                 .create();  //setPrettyPrinting
 
         Type fooType = new TypeToken<Graph<OperatorDeployment>>() {}.getType();
