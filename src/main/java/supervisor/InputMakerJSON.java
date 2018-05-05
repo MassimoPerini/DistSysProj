@@ -33,34 +33,43 @@ public class InputMakerJSON {
         Debug.printVerbose("Main inputMaker started");
         Gson writeGson;
         Position firstSocket;
+        Position parallelSocket;
         try {
             firstSocket = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 1340);
+            parallelSocket = new Position(InetAddress.getLocalHost().
+                    getCanonicalHostName(), 1345);
         }
         catch (UnknownHostException e){
             firstSocket = new Position("127.0.0.1", 1340);
+            parallelSocket = new Position("127.0.0.1", 1345);
         }
 
         Position secondSocket = new Position ("127.0.0.1", 1341);
-        Position thirdSocket = null;
+        Position thirdSocket =  new Position ("127.0.0.1", 1349);;
         List<Position> emptyListPosition = new ArrayList<>();
         List<Integer> emptyListInteger = new ArrayList<>();
 
         List<Position> listPositionFirst = new ArrayList<>();
         List<Integer> listIntegerFirst = new ArrayList<>();
         listPositionFirst.add(secondSocket);
+        listPositionFirst.add(thirdSocket);
         listIntegerFirst.add(51234);
         Position pos1;
         Position pos2;
+        Position pos3;
         try {
             pos1 = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 12345);
             pos2 = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 12346);
+            pos3 = new Position(InetAddress.getLocalHost().
+                    getCanonicalHostName(), 12347);
         }
         catch (UnknownHostException e){
             pos1 = new Position("127.0.0.1", 12345);
             pos2 = new Position("127.0.0.1", 12346);
+            pos3 = new Position("127.0.0.1", 12347);
         }
 
 
@@ -68,6 +77,7 @@ public class InputMakerJSON {
         List<List<Position>> out = new LinkedList<>();
         List<Position> out2 = new LinkedList<>();
         out2.add(firstSocket);
+        out2.add(parallelSocket);
         out.add(out2);
         //source dove apro il sever
         //out lista di gente a cui devo inviare
@@ -75,6 +85,7 @@ public class InputMakerJSON {
         //position deve avere IP uguale a first socket.. => locale vs 10.... non funziona
         OperatorType operatorOne = new Sum(2,2, null, out, pos1);
         OperatorType operatorTwo = new Sum(3,3, firstSocket, new LinkedList<>(), pos2);
+        OperatorType operatorParallel = new Sum(3,3, parallelSocket, new LinkedList<>(), pos3);
         /* todo: a cosa servivano esattamente?
         operatorOne.setPortToUseToConnectToPosition(listPositionFirst, listIntegerFirst);
         operatorTwo.setPortToUseToConnectToPosition(emptyListPosition, emptyListInteger);
@@ -83,6 +94,8 @@ public class InputMakerJSON {
                 operatorOne, "", firstSocket);
         OperatorDeployment secondOperator = new OperatorDeployment(
                 operatorTwo, "", secondSocket);
+        OperatorDeployment parallelOperator = new OperatorDeployment(
+                operatorParallel, "", thirdSocket);
 
         //OperatorDeployment thirdOperator = new OperatorDeployment(new Sum(4,4, null, new LinkedList<>()), "");
         //firstOperator.getOperatorType().getPortToUseToConnectToPosition().put(firstSocket, 51234);
@@ -90,14 +103,14 @@ public class InputMakerJSON {
         Graph<OperatorDeployment> g =new Graph<>();
         Vertex<OperatorDeployment> v1=new Vertex<>(1,firstOperator);
         Vertex<OperatorDeployment> v2=new Vertex<>(2,secondOperator);
-        //Vertex<OperatorDeployment> v3=new Vertex<>(3,thirdOperator);
+        Vertex<OperatorDeployment> v3=new Vertex<>(3,parallelOperator);
 
         g.asymmConnect(v1, v2, 0);
-        //g.asymmConnect(v2, v3, 0);
+        g.asymmConnect(v2, v3, 0);
 
         g.addVertex(1, v1);
         g.addVertex(2, v2);
-        //g.addVertex(3, v3);
+        g.addVertex(3, v3);
 
 
         RuntimeTypeAdapterFactory typeAdapterFactory = RuntimeTypeAdapterFactory.of(MessageSupervisor.class, "type")

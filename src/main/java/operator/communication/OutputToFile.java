@@ -5,6 +5,7 @@ import operator.types.OperatorType;
 import utils.Debug;
 
 import java.io.FileWriter;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,10 +19,13 @@ public class OutputToFile implements OperatorOutputQueue {
 
     private BlockingQueue<DataKey> messageData = new LinkedBlockingQueue<>();
     private OperatorType dataFeeder;
+    int r;
 
     public OutputToFile(OperatorType dataFeeder)
     {
         this.dataFeeder=dataFeeder;
+        Random r = new Random();
+        this.r = r.nextInt(10000);
     }
 
     @Override
@@ -40,8 +44,8 @@ public class OutputToFile implements OperatorOutputQueue {
                 DataKey msg = this.messageData.take();
 
                 Debug.printVerbose("WRITING " + msg);
-                FileWriter fileWriter=new FileWriter("output.txt");
-                fileWriter.write(msg.getOriginalKey()+","+msg.getData());
+                FileWriter fileWriter=new FileWriter("output"+r+".txt", true);
+                fileWriter.write(msg.getOriginalKey()+","+msg.getData()+"\n");
                 fileWriter.flush();
             }
         }catch (Exception e)

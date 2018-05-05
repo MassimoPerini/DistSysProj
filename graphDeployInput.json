@@ -4,7 +4,7 @@
       "id": 1,
       "data": {
         "jarFile": "",
-        "outJson": "{\"type\":\"Sum\",\"size\":2,\"slide\":2,\"exactPosition\":{\"ipAddress\":\"192.168.0.3\",\"port\":12345},\"sequenceNumber\":0,\"messageAddressees\":[[{\"ipAddress\":\"192.168.0.3\",\"port\":1340}]],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
+        "outJson": "{\"type\":\"Sum\",\"size\":2,\"slide\":2,\"exactPosition\":{\"ipAddress\":\"192.168.0.3\",\"port\":12345},\"sequenceNumber\":0,\"messageAddressees\":[[{\"ipAddress\":\"192.168.0.3\",\"port\":1340},{\"ipAddress\":\"192.168.0.3\",\"port\":1345}]],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
         "ownPosition": {
           "ipAddress": "192.168.0.3",
           "port": 1340
@@ -22,6 +22,20 @@
         "ownPosition": {
           "ipAddress": "127.0.0.1",
           "port": 1341
+        }
+      },
+      "neighbours": {
+        "3": 0.0
+      }
+    },
+    "3": {
+      "id": 3,
+      "data": {
+        "jarFile": "",
+        "outJson": "{\"type\":\"Sum\",\"size\":3,\"slide\":3,\"exactPosition\":{\"ipAddress\":\"192.168.0.3\",\"port\":12347},\"sequenceNumber\":0,\"source\":{\"ipAddress\":\"192.168.0.3\",\"port\":1345},\"messageAddressees\":[],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
+        "ownPosition": {
+          "ipAddress": "127.0.0.1",
+          "port": 1349
         }
       },
       "neighbours": {}

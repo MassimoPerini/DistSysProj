@@ -328,6 +328,7 @@ public abstract class OperatorType implements Serializable {
         }
         else
         {
+            int test=0;
             for (List<Position> messageAddressee : messageAddressees) {
                 //this is an output
                 List<Socket> sockets = new LinkedList<>();
@@ -344,11 +345,12 @@ public abstract class OperatorType implements Serializable {
                         */
                             Socket socket = new Socket();
                             Debug.printVerbose(this.exactPosition.toString());
-                            socket.bind(new InetSocketAddress(this.exactPosition.getAddress(), this.exactPosition.getPort()));
+                            socket.bind(new InetSocketAddress(this.exactPosition.getAddress(), this.exactPosition.getPort()+test));
                             socket.connect(new InetSocketAddress(position.getAddress(), position.getPort()));
 
                             sockets.add(socket);
                             keepLooping = false;
+                            test+=30;
 
                         } catch (IOException e) {
                             //If socket isn't ready i cycle waiting for it to be ready
