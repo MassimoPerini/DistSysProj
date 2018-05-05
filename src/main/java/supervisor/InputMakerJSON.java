@@ -65,14 +65,16 @@ public class InputMakerJSON {
 
 
 
-        List<Position> out = new LinkedList<>();
-        out.add(firstSocket);
+        List<List<Position>> out = new LinkedList<>();
+        List<Position> out2 = new LinkedList<>();
+        out2.add(firstSocket);
+        out.add(out2);
         //source dove apro il sever
         //out lista di gente a cui devo inviare
         //exactPosition
         //position deve avere IP uguale a first socket.. => locale vs 10.... non funziona
-        OperatorType operatorOne = new Sum(2,2, 1, null, out, pos1);
-        OperatorType operatorTwo = new Sum(3,3, 1, firstSocket, new LinkedList<>(), pos2);
+        OperatorType operatorOne = new Sum(2,2, null, out, pos1);
+        OperatorType operatorTwo = new Sum(3,3, firstSocket, new LinkedList<>(), pos2);
         /* todo: a cosa servivano esattamente?
         operatorOne.setPortToUseToConnectToPosition(listPositionFirst, listIntegerFirst);
         operatorTwo.setPortToUseToConnectToPosition(emptyListPosition, emptyListInteger);

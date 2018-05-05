@@ -33,7 +33,6 @@ public abstract class OperatorType implements Serializable {
 
     final int size;
     final int slide;
-    final int parallelizationLevel;
     final Position exactPosition;
     private int sequenceNumber;
     
@@ -44,7 +43,7 @@ public abstract class OperatorType implements Serializable {
      * It is updated when new output queues are built.
      * Both this and messageAddresses are needed because messageAddressees cannot be serialized (It contains sockets)
      */
-    private transient @NotNull Map<OperatorOutputQueue,Position> destination;
+    private transient @NotNull Map<OperatorOutputQueue, List<Position>> destination;    //Ho aggiunto la lista
 
     /**
      * this variable is used to guarantee to have the same port connection
@@ -55,7 +54,7 @@ public abstract class OperatorType implements Serializable {
      * messageAddressees is the list of the next nodes
      * It is used to initialize the operator type.
      */
-    private final @NotNull List<Position> messageAddressees;
+    private final @NotNull List<List<Position>> messageAddressees;
 
 
     private transient ExecutorService executorService;
@@ -95,13 +94,12 @@ public abstract class OperatorType implements Serializable {
         this.slide = 0;
     }*/
 
-    public OperatorType(@NotNull List<Position> messageAddressees, int size, int slide,int parallelizationLevel,
+    public OperatorType(@NotNull List<List<Position>> messageAddressees, int size, int slide,
                         @Nullable Position socket, Position exactPosition)
     {
         this.messageAddressees = messageAddressees;
         this.size = size;
         this.slide = slide;
-        this.parallelizationLevel = parallelizationLevel;
         this.exactPosition = exactPosition;
         this.source = socket;
         dataSenders=new HashMap<>();
@@ -330,34 +328,40 @@ public abstract class OperatorType implements Serializable {
         }
         else
         {
-            //this node isn't a leaf so we send to all sockets we've collected our result
-            for (Position socketRepr : messageAddressees) {
-                boolean keepLooping = false;
-                do {
-                    //for all position we try to open a new socket
-                    try {
+            for (List<Position> messageAddressee : messageAddressees) {
+                //this is an output
+                List<Socket> sockets = new LinkedList<>();
+
+                for (Position position : messageAddressee) {
+                    boolean keepLooping = false;
+                    do {
+                        //for all position we try to open a new socket
+                        try {
                         /*
                         Position exactPosition = source==null? new Position(InetAddress.getLocalHost().
                                 getCanonicalHostName(),
                                 12345):source;
                         */
-                        Socket socket = new Socket();
-                        Debug.printVerbose(this.exactPosition.toString());
-                        socket.bind(new InetSocketAddress(this.exactPosition.getAddress(), this.exactPosition.getPort()));
-                        socket.connect(new InetSocketAddress(socketRepr.getAddress(), socketRepr.getPort()));
+                            Socket socket = new Socket();
+                            Debug.printVerbose(this.exactPosition.toString());
+                            socket.bind(new InetSocketAddress(this.exactPosition.getAddress(), this.exactPosition.getPort()));
+                            socket.connect(new InetSocketAddress(position.getAddress(), position.getPort()));
 
-                        OutputToSocket outputToSocket = new OutputToSocket(socket, this);
-                        this.destination.put(outputToSocket,socketRepr);
-                        keepLooping = false;
+                            sockets.add(socket);
+                            keepLooping = false;
 
-                    } catch (IOException e) {
-                        //If socket isn't ready i cycle waiting for it to be ready
-                        Debug.printDebug(e);
-                        //todo: check here
-                        Debug.printDebug("I can't establish connection to the other node input! (OperatorType)");
-                        keepLooping = true;
-                    }
-                }while (keepLooping);
+                        } catch (IOException e) {
+                            //If socket isn't ready i cycle waiting for it to be ready
+                            Debug.printDebug(e);
+                            //todo: check here
+                            Debug.printDebug("I can't establish connection to the other node input! (OperatorType)");
+                            keepLooping = true;
+                        }
+                    }while (keepLooping);
+                }
+
+                OutputToSocket outputToSocket = new OutputToSocket(sockets, this);
+                this.destination.put(outputToSocket,messageAddressee);
             }
         }
 
@@ -486,9 +490,12 @@ public abstract class OperatorType implements Serializable {
      */
     public void manageAck(Key receivedAck, OutputToSocket outputToSocket)
     {
+        /*
+        //TODO da cambiare visto che destination è cambiato
         Debug.printVerbose("Ack received: "+receivedAck);
         Position ackSenderPosition=this.destination.get(outputToSocket);
         this.recoveryManagerForMessagesSentAndNotAcknowledged.reactToAck(receivedAck,ackSenderPosition,this.destination.values());
+        */
     }
 
     public void setPortToUseToConnectToPosition(List<Position> portToUseToConnectToPosition, List<Integer> portToUseToConnectToPort){

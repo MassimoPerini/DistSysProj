@@ -19,9 +19,9 @@ public class Sum extends OperatorType {
      * @param size The number of items that will be summed
      * @param slide The slide of the sum
      */
-    public Sum(int size, int slide, int parallelizationLevel, @Nullable Position source, @NotNull List<Position> destination,
+    public Sum(int size, int slide, @Nullable Position source, @NotNull List<List<Position>> destination,
                Position exactPosition) {
-        super(destination, size, slide,parallelizationLevel, source, exactPosition);
+        super(destination, size, slide, source, exactPosition);
     }
 
 

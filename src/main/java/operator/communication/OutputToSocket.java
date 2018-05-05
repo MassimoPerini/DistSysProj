@@ -8,6 +8,8 @@ import utils.Debug;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,31 +21,23 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class OutputToSocket implements OperatorOutputQueue{
 
 
-    private Socket socket;
-    private ObjectInputStream socketIn;
-    private ObjectOutputStream socketOut;
+    private final List<SingleParallelSocket> singleParallelSocket;
     private final ExecutorService executorService;
     private final BlockingQueue<DataKey> messageData;
 
 
 
     //this is the OperatorType that passes itself in order to stop sending datas to other outputSockets
-    private final OperatorType dataFeeder;
-    private final String addressToReconnectWith;
-    private final int portToReconnectWith;
 
 
-    public OutputToSocket(@NotNull Socket socket, OperatorType operatorType) throws IOException {
-        this.socket = socket;
-        this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
-        this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
+    public OutputToSocket(@NotNull List<Socket> socket, OperatorType operatorType) {
+        this.singleParallelSocket = new ArrayList<>();
+        for (Socket socket1 : socket) {
+            this.singleParallelSocket.add(new SingleParallelSocket(socket1, operatorType));
+        }
+
         this.executorService = Executors.newCachedThreadPool();
         this.messageData = new LinkedBlockingQueue<>();
-
-        this.dataFeeder = operatorType;
-        //todo: check if both work
-        this.addressToReconnectWith = socket.getInetAddress().toString();
-        this.portToReconnectWith = socket.getPort();
     }
 
 
@@ -51,30 +45,16 @@ public class OutputToSocket implements OperatorOutputQueue{
     {
 
         this.executorService.submit(this::keepSending);
-        this.executorService.submit(this::keepAcknowledging);
+
+        for (SingleParallelSocket parallelSocket : this.singleParallelSocket) {
+            this.executorService.submit(parallelSocket::keepAcknowledging);
+        }
     }
 
     /**
      * Read acks from the socket, then inform the feeder.
      */
-    private void keepAcknowledging()
-    {
-        while(true)
-        {
-            try {
 
-                Key receivedAck=(Key)this.socketIn.readObject();
-                Debug.printVerbose("Received an ack: "+receivedAck);
-                dataFeeder.manageAck(receivedAck,this);
-            } catch (IOException e)
-            {
-                Debug.printError(e);
-            } catch (ClassNotFoundException e)
-            {
-                Debug.printError(e);
-            }
-        }
-    }
 
     private void keepSending() {
         Debug.printDebug("Start send with socket...");
@@ -86,33 +66,12 @@ public class OutputToSocket implements OperatorOutputQueue{
                 DataKey messageData = this.messageData.take();
                 Debug.printVerbose("operator queue out Socket sending....");
 
-                this.socketOut.writeObject(messageData);
-                this.socketOut.flush();
+                int hash = messageData.getOriginalKey().hashCode();
+                int index = Math.abs(hash % this.singleParallelSocket.size());
+                singleParallelSocket.get(index).send(messageData);
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-                dataFeeder.stopOutput(this);
-                Boolean tryToReconnect = true;
-                while(tryToReconnect){
-                    try {
-                        this.socket = new Socket(this.addressToReconnectWith, this.portToReconnectWith);
-                        this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
-                        this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
-                        tryToReconnect = false;
-                        this.dataFeeder.restartOutput(this);
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                        Debug.printVerbose("Waiting for the node to come back alive");
-                        //todo check if it's okays
-                        try {
-                            Thread.sleep((long) (200));
-                        } catch (InterruptedException e2) {
-                            e2.printStackTrace();
-                            Debug.printVerbose("Thread sleep failed");
-                        }
-                    }
-                }
             }
         }
 
@@ -129,14 +88,8 @@ public class OutputToSocket implements OperatorOutputQueue{
     }
 
     void finish(){
-        try {
-            socketOut.close();
-            socketIn.close();
-            socket.close();
-        }
-        catch (IOException e)
-        {
-            Debug.printError("IOException on closing...");
+        for (SingleParallelSocket parallelSocket : singleParallelSocket) {
+            parallelSocket.finish();
         }
     }
 

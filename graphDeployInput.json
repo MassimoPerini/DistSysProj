@@ -4,9 +4,9 @@
       "id": 1,
       "data": {
         "jarFile": "",
-        "outJson": "{\"type\":\"Sum\",\"size\":2,\"slide\":2,\"parallelizationLevel\":1,\"exactPosition\":{\"ipAddress\":\"10.169.220.48\",\"port\":12345},\"sequenceNumber\":0,\"portToUseToConnectToPosition\":[{\"ipAddress\":\"127.0.0.1\",\"port\":1341}],\"portToUseToConnectToPositionPort\":[51234],\"messageAddressees\":[{\"ipAddress\":\"10.169.220.48\",\"port\":1340}],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
+        "outJson": "{\"type\":\"Sum\",\"size\":2,\"slide\":2,\"exactPosition\":{\"ipAddress\":\"192.168.0.3\",\"port\":12345},\"sequenceNumber\":0,\"messageAddressees\":[[{\"ipAddress\":\"192.168.0.3\",\"port\":1340}]],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
         "ownPosition": {
-          "ipAddress": "10.169.220.48",
+          "ipAddress": "192.168.0.3",
           "port": 1340
         }
       },
@@ -18,7 +18,7 @@
       "id": 2,
       "data": {
         "jarFile": "",
-        "outJson": "{\"type\":\"Sum\",\"size\":3,\"slide\":3,\"parallelizationLevel\":1,\"exactPosition\":{\"ipAddress\":\"10.169.220.48\",\"port\":12346},\"sequenceNumber\":0,\"source\":{\"ipAddress\":\"10.169.220.48\",\"port\":1340},\"portToUseToConnectToPosition\":[],\"portToUseToConnectToPositionPort\":[],\"messageAddressees\":[],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
+        "outJson": "{\"type\":\"Sum\",\"size\":3,\"slide\":3,\"exactPosition\":{\"ipAddress\":\"192.168.0.3\",\"port\":12346},\"sequenceNumber\":0,\"source\":{\"ipAddress\":\"192.168.0.3\",\"port\":1340},\"messageAddressees\":[],\"stoppedByCrash\":{},\"outputToSocketFallen\":[],\"dataSenders\":{}}",
         "ownPosition": {
           "ipAddress": "127.0.0.1",
           "port": 1341

@@ -7,8 +7,7 @@ import operator.ProcessOperator;
 import operator.communication.DaemonOperatorInfo;
 import operator.communication.message.LogMessageOperator;
 import operator.communication.message.MessageOperator;
-import operator.types.OperatorType;
-import operator.types.Sum;
+import operator.types.*;
 import org.jetbrains.annotations.NotNull;
 import supervisor.Position;
 import utils.Debug;
@@ -48,10 +47,11 @@ public class OperatorDeployment implements MessageSupervisor {
     {
         this.jarFile = jarFile;
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(OperatorType.class, "type")
-                .registerSubtype(Sum.class);
+                .registerSubtype(Sum.class).registerSubtype(Min.class).registerSubtype(Avg.class).registerSubtype(Max.class);
         this.ownPosition = position;
         Gson gson = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
         outJson = gson.toJson(operatorType, OperatorType.class);
+        System.out.println("out json: "+outJson);
 
     }
     /***
