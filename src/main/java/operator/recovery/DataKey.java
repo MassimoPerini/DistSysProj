@@ -43,11 +43,11 @@ public class DataKey implements Serializable{
 
         return data;
     }
-    //todo: pick one, getData or getValue()
-    public float getValue() {
+
+    /*public float getValue() {
 
         return data;
-    }
+    }*/
     public void setData(int data) {
         this.data = data;
     }

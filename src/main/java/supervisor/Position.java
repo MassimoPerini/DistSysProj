@@ -5,7 +5,7 @@ import java.net.SocketImpl;
 
 import operator.types.SocketRepr;
 
-//todo: position forse è IP+PORTA
+
 /**
  * This class represents the location of operators
  */

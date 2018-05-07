@@ -50,7 +50,7 @@ public class SocketListener{
                 NodeSocket nodeSocket = new NodeSocket(taskSocket);
                 this.socketManager.addSocket(nodeSocket);
                 /*
-                //TODO SPOSTARE QUESTA PARTE
+                //TODO SPOSTARE QUESTA PARTE ---- Si può eliminare tutta ora?
                 i++;
 
                 if (i == 2)
@@ -66,7 +66,8 @@ public class SocketListener{
                     outSocket.add(firstSocket);
 
                     //source, destination
-                    OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2, null, outSocket),"");//TODO trovare qualche metodo migliore di passare il JAR
+                    //TODO trovare qualche metodo migliore di passare il JAR
+                    OperatorDeployment operatorDeployment = new OperatorDeployment(new Sum(2,2, null, outSocket),"");
                     this.socketManager.deployNewOperator(0, operatorDeployment);
                 }*/
 

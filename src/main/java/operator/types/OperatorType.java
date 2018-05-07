@@ -175,7 +175,7 @@ public abstract class OperatorType implements Serializable {
             for (Map.Entry<String, List<DataKey>> stringListEntry : currentMsg.entrySet()) {
                 Debug.printVerbose(stringListEntry.getKey());
                 for (DataKey dataKey : stringListEntry.getValue()) {
-                    Debug.printVerbose("----------> " + dataKey.getValue());
+                    Debug.printVerbose("----------> " + dataKey.getData());
                 }
             }
 
@@ -188,7 +188,7 @@ public abstract class OperatorType implements Serializable {
                 {
                     //i take a list of Datakeys
                     List<DataKey> subRes = data.subList(0, this.size);
-                    float result = this.operationType(subRes.stream().map(DataKey::getValue).collect(Collectors.toList()));
+                    float result = this.operationType(subRes.stream().map(DataKey::getData).collect(Collectors.toList()));
                     List<Key> senders=subRes.stream().map(DataKey::getAggregator).collect(Collectors.toList());
                     //this is the aggregated result:
                     DataKey messageData = new DataKey(changedKey, result, new Key(this.source, ++sequenceNumber),senders);
@@ -355,7 +355,7 @@ public abstract class OperatorType implements Serializable {
                         } catch (IOException e) {
                             //If socket isn't ready i cycle waiting for it to be ready
                             Debug.printDebug(e);
-                            //todo: check here
+                            //todo: check here - ogni tanto mi compariva questo errore
                             Debug.printDebug("I can't establish connection to the other node input! (OperatorType)");
                             keepLooping = true;
                         }
@@ -367,7 +367,6 @@ public abstract class OperatorType implements Serializable {
             }
         }
 
-        //todo: è corretta questa cosa?
         //Ciclo creando una coda di output per ogni destination
         for (OperatorOutputQueue operatorOutputQueue : destination.keySet()) {
             //Starting output threads. They will start to consume their queue. Right now they're waiting for datas

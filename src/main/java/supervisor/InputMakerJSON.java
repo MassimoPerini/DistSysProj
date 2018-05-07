@@ -86,10 +86,7 @@ public class InputMakerJSON {
         OperatorType operatorOne = new Sum(2,2, null, out, pos1);
         OperatorType operatorTwo = new Sum(3,3, firstSocket, new LinkedList<>(), pos2);
         OperatorType operatorParallel = new Sum(3,3, parallelSocket, new LinkedList<>(), pos3);
-        /* todo: a cosa servivano esattamente?
-        operatorOne.setPortToUseToConnectToPosition(listPositionFirst, listIntegerFirst);
-        operatorTwo.setPortToUseToConnectToPosition(emptyListPosition, emptyListInteger);
-        */
+
         OperatorDeployment firstOperator = new OperatorDeployment(
                 operatorOne, "", firstSocket);
         OperatorDeployment secondOperator = new OperatorDeployment(

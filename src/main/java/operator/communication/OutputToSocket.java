@@ -58,7 +58,7 @@ public class OutputToSocket implements OperatorOutputQueue{
 
     private void keepSending() {
         Debug.printDebug("Start send with socket...");
-        //todo: while(true)
+        // while(true)
         while(Math.random() < 10)
         {
             try {

@@ -21,7 +21,7 @@ public class NodeSocket {
     private final TaskSocket daemonSocket;
     //this is the list of all operators associated to the node
     //they can be 0..n operations diffrent from each others
-    private final List<TaskSocket> operatorsSocket; //TODO non usato
+    private final List<TaskSocket> operatorsSocket;
     private final ExecutorService executorService;
     private static final int DELAY = 8000;
 
@@ -51,7 +51,7 @@ public class NodeSocket {
         daemonSocket.send(new HeartbeatRequest());
     }
 
-    //todo update using ip-port identifier
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

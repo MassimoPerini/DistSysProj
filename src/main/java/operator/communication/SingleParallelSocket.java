@@ -32,7 +32,7 @@ public class SingleParallelSocket {
             this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
 
         } catch (IOException e) {
-            Debug.printDebug(e);    //todo gestire morte prematura (come per l'invio)
+            Debug.printDebug(e);    //todo gestire morte prematura del socket(come per l'invio)
         }
         //todo: check if both work
         this.addressToReconnectWith = socket.getInetAddress().toString();
@@ -47,7 +47,7 @@ public class SingleParallelSocket {
             this.socketOut.flush();
         } catch (IOException e) {
             Debug.printDebug(e);
-            //dataFeeder.stopOutput(this); todo fix here
+            //dataFeeder.stopOutput(this); //todo fix here
             Boolean tryToReconnect = true;
             while(tryToReconnect){
                 try {
