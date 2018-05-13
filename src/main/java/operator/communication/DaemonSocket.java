@@ -7,7 +7,6 @@ import operator.communication.message.LogMessageOperator;
 import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
 import org.jetbrains.annotations.NotNull;
-import sun.plugin2.message.Message;
 import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.MessageSupervisor;
 import supervisor.communication.message.OperatorDeployment;
