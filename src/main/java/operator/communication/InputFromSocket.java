@@ -24,7 +24,7 @@ public class InputFromSocket implements OperatorInputQueue{
 	private final Socket inputSocket;
 	private final ObjectInputStream socketIn;
 	private final ObjectOutputStream socketOut;
-	private final BlockingQueue<Key> acksToSend;
+	private final BlockingQueue<DataKey> acksToSend;
 
 	private final Position positionOfTheOtherSide;
 
@@ -68,7 +68,7 @@ public class InputFromSocket implements OperatorInputQueue{
 		}
 	}
 	
-	public void sendAck(Key ack)
+	public void sendAck(DataKey ack)
 	{
 		try {
 			acksToSend.put(ack);

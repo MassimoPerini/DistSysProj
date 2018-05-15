@@ -111,6 +111,7 @@ public class DataKey implements Serializable{
     	else return key.aggregator==null;
     }
 
+
     public boolean otherHasSameSenderButOlderSequenceNumber(DataKey currentlyInFile)
     {
         return this.aggregator.otherHasSameSenderButOlderSequenceNumber(currentlyInFile.getAggregator());
@@ -140,5 +141,14 @@ public class DataKey implements Serializable{
     public void setAggregator(Position positionOfTheOtherSide)
     {
         this.aggregator.setSender(positionOfTheOtherSide);
+    }
+    
+    
+    public DataKey oldestInListWithSameOriginalKey(List<DataKey> all)
+    {
+    	return all.stream().filter(dk->dk.getOriginalKey().equals(getOriginalKey()))
+    			.min((dk1,dk2)->dk1.getAggregator().getSequenceNumber()-dk2.getAggregator().getSequenceNumber())
+    			.orElse(null)
+    			;
     }
 }

@@ -77,9 +77,9 @@ public class SingleParallelSocket {
         {
             try {
 
-                Key receivedAck=(Key)this.socketIn.readObject();
+                DataKey receivedAck=(DataKey)this.socketIn.readObject();
                 Debug.printVerbose("Received an ack: "+receivedAck);
-                 dataFeeder.manageAck(receivedAck,this);// todo fix here
+                 dataFeeder.manageAck(receivedAck.getOriginalKey(),receivedAck.getAggregator(),this);// todo fix here
             } catch (IOException e)
             {
                 Debug.printError(e);
