@@ -18,6 +18,7 @@ import operator.recovery.RecoveryManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
@@ -200,6 +201,8 @@ public abstract class OperatorType implements Serializable {
 			// ---- ended copy, now aggregates
 			// Map<String, List<DataKey>> results = new HashMap<>();
 			Logger logger = LogManager.getLogger();
+			ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+
 
 			// printing data
 			for (Map.Entry<String, List<DataKey>> stringListEntry : currentMsg.entrySet()) {
@@ -295,7 +298,7 @@ public abstract class OperatorType implements Serializable {
 
 		if (source.getPort() > 0) {
 			for (DataKey key : toSendAck) {
-				dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
+				//dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
 			}
 		}
 		removeEl.clear();
@@ -450,6 +453,8 @@ public abstract class OperatorType implements Serializable {
 
 	private void sendMessage(DataKey messageData) {
 		Logger logger = LogManager.getLogger();
+		ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+
 		for (OperatorOutputQueue operatorOutputQueue : destination.keySet()) {
 			logger.trace(destination.toString());
 			operatorOutputQueue.send(messageData);

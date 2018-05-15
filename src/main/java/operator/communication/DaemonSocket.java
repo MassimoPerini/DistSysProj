@@ -8,6 +8,7 @@ import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.jetbrains.annotations.NotNull;
 import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.MessageSupervisor;
@@ -78,7 +79,8 @@ public class DaemonSocket {
         String input;
 
         Logger logger = LogManager.getLogger();
-        logger.debug("node Socket receiving....");
+        ThreadContext.put("logFileName", "daemon");
+        logger.debug("Daemon Socket receiving....");
 
         try {
             while (true) {
@@ -115,6 +117,8 @@ public class DaemonSocket {
 
                 String res = writeGson.toJson(messageOperator, MessageOperator.class);
                 Logger logger = LogManager.getLogger();
+                ThreadContext.put("logFileName", "daemon");
+
                 logger.trace("sending: " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
 
                 socketOut.println(res);

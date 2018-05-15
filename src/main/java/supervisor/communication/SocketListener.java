@@ -5,6 +5,7 @@ import operator.types.SocketRepr;
 import operator.types.Sum;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.Position;
 import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
@@ -38,6 +39,7 @@ public class SocketListener{
     public void run() {
 
         Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "supervisor");
 
         try {
             //creats the socket

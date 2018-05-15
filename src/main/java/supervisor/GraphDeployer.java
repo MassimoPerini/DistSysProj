@@ -14,6 +14,9 @@ import java.util.Scanner;
 import com.google.gson.Gson;
 
 import com.google.gson.reflect.TypeToken;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.communication.SocketListener;
 import supervisor.communication.SocketManager;
 import supervisor.communication.message.OperatorDeployment;
@@ -47,7 +50,10 @@ public class GraphDeployer implements Runnable{
 	 */
 	@Override
 	public void run() {
-        String FILENAME = "graphDeployInput.json";
+		Logger logger = LogManager.getLogger();
+		ThreadContext.put("logFileName", "supervisor");
+
+		String FILENAME = "graphDeployInput.json";
 		FileReader fr = null;
 		BufferedReader br  = null;
 		StringBuilder inputGraphDeploy = new StringBuilder();

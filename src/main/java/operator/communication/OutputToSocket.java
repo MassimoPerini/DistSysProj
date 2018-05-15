@@ -5,6 +5,7 @@ import operator.recovery.Key;
 import operator.types.OperatorType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.jetbrains.annotations.NotNull;
 import utils.Debug;
 
@@ -60,6 +61,8 @@ public class OutputToSocket implements OperatorOutputQueue{
 
     private void keepSending() {
         Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+
         logger.debug("Start send with socket...");
         // while(true)
         while(Math.random() < 10)

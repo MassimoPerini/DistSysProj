@@ -14,6 +14,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by massimo on 22/12/17.
@@ -23,7 +24,8 @@ public class ProcessOperator {
     public static void main(String [] args)
     {
         Logger logger = LogManager.getLogger();
-        ThreadContext.put("logFileName", "operator");
+        Debug.setUuid(UUID.randomUUID());
+        ThreadContext.put("logFileName", "operator"+Debug.getUuid());
 
         Debug.setLevel(Debug.LEVEL_VERBOSE);
         logger.debug("Processo lanciato!!! " + args[0]);

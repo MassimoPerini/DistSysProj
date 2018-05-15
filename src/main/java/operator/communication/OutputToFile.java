@@ -4,6 +4,7 @@ import operator.recovery.DataKey;
 import operator.types.OperatorType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import utils.Debug;
 
 import java.io.FileWriter;
@@ -40,6 +41,8 @@ public class OutputToFile implements OperatorOutputQueue {
     public void keepSending()
     {
         Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+
 
         try {
             logger.debug("OutputToFile started");

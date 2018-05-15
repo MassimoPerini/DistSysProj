@@ -5,6 +5,7 @@ import operator.recovery.Key;
 import operator.types.OperatorType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.Position;
 import utils.Debug;
 
@@ -77,16 +78,18 @@ public class SingleParallelSocket {
 
     public void keepAcknowledging()
     {
+        Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "operator"+Debug.getUuid());
         while(true)
         {
             try {
 
                 DataKey receivedAck=(DataKey)this.socketIn.readObject();
-                Debug.printVerbose("Received an ack: "+receivedAck);
+                logger.trace("Received an ack: "+receivedAck);
                  dataFeeder.manageAck(receivedAck.getOriginalKey(),receivedAck.getAggregator(),this);// todo fix here
             } catch (IOException | ClassNotFoundException e)
             {
-                Logger logger = LogManager.getLogger();
+
                 logger.error(e);
             }
         }

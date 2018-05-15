@@ -6,6 +6,7 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.communication.message.LogMessageOperator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.jetbrains.annotations.NotNull;
 import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.MessageSupervisor;
@@ -58,6 +59,8 @@ public class TaskSocket{
         String input;
         //Expected login here
         Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "supervisor");
+
         logger.debug("Socket receiving....");
 
         try {
@@ -82,6 +85,8 @@ public class TaskSocket{
 
     void send(@NotNull MessageSupervisor messageServer){
         Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "supervisor");
+
         executorService.submit (() -> {
             try {
                 String res = writeGson.toJson(messageServer, MessageSupervisor.class);

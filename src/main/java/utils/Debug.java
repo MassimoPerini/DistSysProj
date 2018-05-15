@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.PrintStream;
+import java.util.UUID;
 
 /**
  * Created by higla on 24/12/2017.
@@ -10,6 +11,9 @@ import java.io.PrintStream;
  * This class should not be used to print normal messages to the user, just debug and error messages.
  */
 public class Debug {
+
+    private static UUID uuid;
+
         /**
          * Nothing is printed
          */
@@ -235,4 +239,11 @@ public class Debug {
             return stringBuilder.toString();
         }
 
+    public static UUID getUuid() {
+        return uuid;
+    }
+
+    public static void setUuid(UUID uuid) {
+        Debug.uuid = uuid;
+    }
 }

@@ -35,6 +35,7 @@ public class InputFromFile implements OperatorInputQueue{
             String readLine = "";
 
             Logger logger = LogManager.getLogger();
+            ThreadContext.put("logFileName", "operator"+Debug.getUuid());
             logger.debug("Reading file using Buffered Reader ");
 
             while ((readLine = b.readLine()) != null) {
