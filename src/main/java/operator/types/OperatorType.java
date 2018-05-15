@@ -16,6 +16,8 @@ import operator.recovery.DataKey;
 import operator.recovery.Key;
 import operator.recovery.RecoveryManager;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
@@ -140,8 +142,8 @@ public abstract class OperatorType implements Serializable {
 			this.lastMessageBySenderRecoveryManager = new RecoveryManager(
 					"last_message_by_sender" + source.toStringFile() + ".txt");
 		}
-
-		Debug.printVerbose("All managers were created");
+		Logger logger = LogManager.getLogger();
+		logger.debug("All managers were created");
 	}
 
 	// Here i aggregate data
@@ -173,7 +175,8 @@ public abstract class OperatorType implements Serializable {
 					try {
 						sourceMsgQueue.wait();
 					} catch (InterruptedException e) {
-						Debug.printError(e);
+						Logger logger = LogManager.getLogger();
+						logger.error(e);
 					}
 				}
 				// here i take values from the global map
@@ -196,12 +199,13 @@ public abstract class OperatorType implements Serializable {
 
 			// ---- ended copy, now aggregates
 			// Map<String, List<DataKey>> results = new HashMap<>();
-			Debug.printVerbose(" start computation");
+			Logger logger = LogManager.getLogger();
+
 			// printing data
 			for (Map.Entry<String, List<DataKey>> stringListEntry : currentMsg.entrySet()) {
-				Debug.printVerbose(stringListEntry.getKey());
+				logger.trace(stringListEntry.getKey());
 				for (DataKey dataKey : stringListEntry.getValue()) {
-					Debug.printVerbose("----------> " + dataKey.getData());
+					logger.trace("-> " + dataKey.getData());
 				}
 			}
 
@@ -221,7 +225,7 @@ public abstract class OperatorType implements Serializable {
 					DataKey messageData = new DataKey(changedKey, result, new Key(this.source, ++sequenceNumber),
 							senders);
 
-					Debug.printVerbose(" --------    result: " + changedKey + " : " + result);
+					logger.debug("\" result: \" + changedKey + \" : \" + result");
 
 					// 1- Appending processed data to -output_handler_recovery-
 					changeLastProcessedWindow(messageData);
@@ -244,7 +248,7 @@ public abstract class OperatorType implements Serializable {
 
 				}
 			}
-			Debug.printVerbose(" end computation");
+			logger.debug("end computation");
 
 			// send
 
@@ -295,7 +299,6 @@ public abstract class OperatorType implements Serializable {
 			}
 		}
 		removeEl.clear();
-
 	}
 
 	/**
@@ -331,6 +334,8 @@ public abstract class OperatorType implements Serializable {
 		// this.sourceMsgKeys = Collections.newSetFromMap(new
 		// ConcurrentHashMap<String, Boolean>());
 
+		Logger logger = LogManager.getLogger();
+
 		executorService = Executors.newCachedThreadPool();
 		this.destination = new HashMap<>();
 
@@ -358,7 +363,7 @@ public abstract class OperatorType implements Serializable {
 
 							Socket socket = new Socket();
 							Position currentPointingPosition = this.exactPosition.get(count);
-							Debug.printVerbose(currentPointingPosition.toString());
+							logger.debug(currentPointingPosition.toString());
 							socket.bind(new InetSocketAddress(currentPointingPosition.getAddress(),
                                     currentPointingPosition.getPort()));
 							socket.connect(new InetSocketAddress(position.getAddress(), position.getPort()));
@@ -369,10 +374,10 @@ public abstract class OperatorType implements Serializable {
 						} catch (IOException e) {
 							// If socket isn't ready i cycle waiting for it to
 							// be ready
-							Debug.printDebug(e);
+							logger.error(e);
 							// todo: check here - ogni tanto mi compariva questo
 							// errore
-							Debug.printDebug("I can't establish connection to the other node input! (OperatorType)");
+							logger.error("I can't establish connection to the other node input! (OperatorType)");
 							keepLooping = true;
 						}
 					} while (keepLooping);
@@ -403,18 +408,18 @@ public abstract class OperatorType implements Serializable {
 		} else {
 			// Deploy input from socket. I create a new ServerSocket
 			try {
-				Debug.printVerbose("Inside second operator");
+				logger.debug("Inside second operator");
 
 				ServerSocket serverSocket = new ServerSocket(source.getPort());
 				executorService.submit(this::execute);
 				// i listen for all DataKey coming from the previous node.
 				while (true) {
-					Debug.printDebug("Start accepting new incoming connections!");
+					logger.debug("Start accepting new incoming connections!");
 					Socket socket = serverSocket.accept();
-					Debug.printDebug("A new socket input!");
+					logger.debug("A new socket input!");
 					InputFromSocket receiver = new InputFromSocket(socket, source);
 					dataSenders.put(receiver.getOtherSidePosition(), receiver);
-					Debug.printVerbose(dataSenders.toString());
+					logger.trace(dataSenders.toString());
 					executorService.submit(() -> receiver.startReceiving(this));
 				}
 			} catch (IOException e) {
@@ -444,8 +449,9 @@ public abstract class OperatorType implements Serializable {
 	}
 
 	private void sendMessage(DataKey messageData) {
+		Logger logger = LogManager.getLogger();
 		for (OperatorOutputQueue operatorOutputQueue : destination.keySet()) {
-			Debug.printVerbose(destination.toString());
+			logger.trace(destination.toString());
 			operatorOutputQueue.send(messageData);
 
 		}
@@ -486,7 +492,8 @@ public abstract class OperatorType implements Serializable {
 	 *            which I sent it)
 	 */
 	public void manageAck(String originalKey,Key receivedAck, SingleParallelSocket outputToSocket) {
-		Debug.printVerbose("Ack received: " + receivedAck);
+		Logger logger = LogManager.getLogger();
+		logger.debug("Ack received: " + receivedAck);
 		Position ackSenderPosition = outputToSocket.getOtherSideAddress();
 		List<Position> allSubsequentNodes = new ArrayList<>();
 		for (List<Position> curr : this.destination.values()) {

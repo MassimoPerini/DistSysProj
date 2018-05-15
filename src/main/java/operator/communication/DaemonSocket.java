@@ -78,7 +78,7 @@ public class DaemonSocket {
         String input;
 
         Logger logger = LogManager.getLogger();
-        logger.trace("node Socket receiving....");
+        logger.debug("node Socket receiving....");
 
         try {
             while (true) {

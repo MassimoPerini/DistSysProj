@@ -3,6 +3,8 @@ package operator.communication;
 import operator.recovery.DataKey;
 import operator.recovery.Key;
 import operator.types.OperatorType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import utils.Debug;
 
@@ -57,21 +59,22 @@ public class OutputToSocket implements OperatorOutputQueue{
 
 
     private void keepSending() {
-        Debug.printDebug("Start send with socket...");
+        Logger logger = LogManager.getLogger();
+        logger.debug("Start send with socket...");
         // while(true)
         while(Math.random() < 10)
         {
             try {
                 // i take values from the Q
                 DataKey messageData = this.messageData.take();
-                Debug.printVerbose("operator queue out Socket sending....");
+                logger.trace("operator queue out Socket sending....");
 
                 int hash = messageData.getOriginalKey().hashCode();
                 int index = Math.abs(hash % this.singleParallelSocket.size());
                 singleParallelSocket.get(index).send(messageData);
 
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error(e);
             }
         }
 
@@ -82,7 +85,8 @@ public class OutputToSocket implements OperatorOutputQueue{
         try {
             this.messageData.put(message);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Logger logger = LogManager.getLogger();
+            logger.error(e);
         }
 
     }

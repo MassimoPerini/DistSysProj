@@ -2,6 +2,8 @@ package operator.communication;
 
 import operator.recovery.DataKey;
 import operator.types.OperatorType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import utils.Debug;
 
 import java.io.FileWriter;
@@ -37,13 +39,14 @@ public class OutputToFile implements OperatorOutputQueue {
 
     public void keepSending()
     {
+        Logger logger = LogManager.getLogger();
+
         try {
-            Debug.printVerbose("OutputToFile started");
+            logger.debug("OutputToFile started");
             while (true) {
 
                 DataKey msg = this.messageData.take();
-
-                Debug.printVerbose("WRITING " + msg);
+                logger.trace("WRITING " + msg);
                 FileWriter fileWriter=new FileWriter("output"+r+".txt", true);
                 fileWriter.write(msg.getOriginalKey()+","+msg.getData()+"\n");
                 fileWriter.flush();

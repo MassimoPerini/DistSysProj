@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import supervisor.Position;
 import utils.Debug;
@@ -24,7 +26,8 @@ public class RecoveryManager {
 
 	public RecoveryManager(String destinationFile)
 	{
-	    Debug.printVerbose("\n\n\nCreando il file...");
+        Logger logger = LogManager.getLogger();
+        logger.debug("\n\n\nCreando il file...");
 		this.destinationFile=destinationFile;
 		this.createNewFile(this.destinationFile);
 	}
@@ -32,17 +35,20 @@ public class RecoveryManager {
 	private void createNewFile(String destinationFile){
 
 	    File f = new File(destinationFile);
+
+        Logger logger = LogManager.getLogger();
+
         if(!f.exists())
             try {
                 if(f.createNewFile())
-                    Debug.printVerbose("File "+ destinationFile+" correctly created");
+                    logger.debug("File "+ destinationFile+" correctly created");
                 else
-                    Debug.printError("File "+ destinationFile+" not created");
+                    logger.debug("File "+ destinationFile+" not created");
             } catch (IOException e) {
-                Debug.printError(e);
+                logger.error(e);
             }
         else
-            Debug.printVerbose("File already exists");
+            logger.debug("File already exists");
 
     }
 
@@ -122,7 +128,7 @@ public class RecoveryManager {
     public synchronized void store(List<DataKey> toStore)
     {
         Type type = new TypeToken<List<DataKey>>() {}.getType();
-
+        Logger logger = LogManager.getLogger();
         try{
             FileWriter writer=new FileWriter(destinationFile, false);
             writer.write( new GsonBuilder().setPrettyPrinting().create().toJson(toStore, type));
@@ -130,11 +136,11 @@ public class RecoveryManager {
         }
         catch(FileNotFoundException e)
         {
-            Debug.printError("File wasn't found!");
+            logger.error("File wasn't found!");
         }
         catch(IOException e)
         {
-            Debug.printError("No file found!");
+            logger.error(e);
         }
     }
 
@@ -181,6 +187,7 @@ public class RecoveryManager {
     {
         String s;
         StringBuilder toConvertFromJSON = new StringBuilder();
+        Logger logger = LogManager.getLogger();
 
         FileReader fr=null;
         try {
@@ -196,16 +203,14 @@ public class RecoveryManager {
             List<DataKey> datas = new Gson().fromJson(toConvertFromJSON.toString(), type);
             if(datas!=null)
                 return datas;
-        } catch (FileNotFoundException e) {
-            Debug.printError(e);
         } catch (IOException e) {
-            Debug.printError(e);
+            logger.error(e);
         }
         finally {
             try {
                 fr.close();
             } catch (IOException e) {
-                Debug.printError(e);
+                logger.error(e);
             }
         }
         return null;

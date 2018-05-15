@@ -39,6 +39,7 @@ public class NodeSocket {
 
     public void doHearbeat(List<Vertex<OperatorDeployment>> sortedGraph)
     {
+        /*
         Timer timer = new Timer(true);
         timer.schedule(new TimerTask() {
             @Override
@@ -47,6 +48,7 @@ public class NodeSocket {
                 Debug.printVerbose("TIMER elapsed !!!!!!!!");
             }
         }, DELAY);
+        */
         executorService.submit(() -> daemonSocket.listen(sortedGraph));
         daemonSocket.send(new HeartbeatRequest());
     }

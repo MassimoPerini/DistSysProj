@@ -40,8 +40,7 @@ public class MainDaemon {
         if (args.length > 0) {
             jarFile = args[0];
         }
-
-        Debug.printVerbose("I'm the daemon, I should contact the supervisor");
+        logger.debug("I'm the daemon, I should contact the supervisor");
             //Process pro = Runtime.getRuntime().exec("java ProcessOperator");
 
         URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();

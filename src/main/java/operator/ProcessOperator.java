@@ -34,7 +34,7 @@ public class ProcessOperator {
 
         //Type fooTypeMap = new TypeToken<Map<Position, Position>>() {}.getType();
         OperatorType o = gson.fromJson(args[0], OperatorType.class);
-        Debug.printVerbose("Operazione assegnata: "+o.toString());
+        logger.debug("Operazione assegnata: "+o.toString());
         o.deploy();
 
     }
