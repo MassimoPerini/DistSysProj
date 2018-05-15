@@ -30,12 +30,8 @@ public class MainDaemon {
 
     public static void main(String [] args) throws URISyntaxException, IOException {
 
-        ThreadContext.put("logFileName", "daemon");
-
-
-
         Logger logger = LogManager.getLogger();
-        logger.debug("debug");
+        ThreadContext.put("logFileName", "daemon");
 
         Debug.setLevel(Debug.LEVEL_VERBOSE);
         DaemonOperatorInfo daemonOperatorInfo = new DaemonOperatorInfo();

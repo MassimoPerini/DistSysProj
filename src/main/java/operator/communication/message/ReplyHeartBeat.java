@@ -1,5 +1,8 @@
 package operator.communication.message;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.Position;
 import supervisor.communication.message.MessageSupervisor;
 import supervisor.communication.message.OperatorDeployment;
@@ -26,7 +29,8 @@ public class ReplyHeartBeat implements MessageOperator, Serializable {
     @Override
     public List<MessageSupervisor> execute(List<Vertex<OperatorDeployment>> sortedGraph) {
         if (this.failedPositions.size() > 0){
-            Debug.printVerbose("E' fallito almeno un processo");
+            Logger logger = LogManager.getLogger();
+            logger.debug(this.failedPositions.size() +" processes are failed, re-launching!");
         }
 
         List<MessageSupervisor> operatorDeploymentLaunch = new LinkedList<>();

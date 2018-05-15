@@ -6,6 +6,8 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.communication.message.LogMessageOperator;
 import operator.communication.message.MessageOperator;
 import operator.communication.message.ReplyHeartBeat;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import sun.plugin2.message.Message;
 import supervisor.communication.message.HeartbeatRequest;
@@ -75,12 +77,14 @@ public class DaemonSocket {
      */
     private void listen(DaemonOperatorInfo daemonOperatorInfo) {
         String input;
-        Debug.printVerbose("node Socket receiving....");
+
+        Logger logger = LogManager.getLogger();
+        logger.trace("node Socket receiving....");
 
         try {
             while (true) {
                 while ((input = socketIn.readLine()) != null) {
-                    Debug.printVerbose("node:" + input);
+                    logger.trace("receiving:" + input);
                     MessageSupervisor messageSupervisor = readGson.fromJson(input, MessageSupervisor.class);
                     this.executorService.submit(() -> {
                         MessageOperator result = messageSupervisor.execute(daemonOperatorInfo);
@@ -111,7 +115,9 @@ public class DaemonSocket {
             try {
 
                 String res = writeGson.toJson(messageOperator, MessageOperator.class);
-                Debug.printVerbose("DAEMON: SENDING " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
+                Logger logger = LogManager.getLogger();
+                logger.trace("sending: " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
+
                 socketOut.println(res);
                 socketOut.flush();
             }
@@ -130,7 +136,8 @@ public class DaemonSocket {
         }
         catch (IOException e)
         {
-            Debug.printError("IOException on closing...");
+            Logger logger = LogManager.getLogger();
+            logger.error("IOException closing the socket");
         }
     }
 
