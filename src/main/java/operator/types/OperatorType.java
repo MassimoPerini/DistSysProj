@@ -80,7 +80,7 @@ public abstract class OperatorType implements Serializable {
 	private Map<Position, InputFromSocket> dataSenders;
 
 	/**
-	 * This object is used to store the last processed window
+	 * This object is used to store the last processed window for each key
 	 * -output_handler_recovery-
 	 */
 	private transient RecoveryManager lastProcessedWindowRecoveryManager;
@@ -283,7 +283,7 @@ public abstract class OperatorType implements Serializable {
 
 		if (source != null) {
 			for (DataKey key : toSendAck) {
-				dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
+				dataSenders.get(key.getAggregator().getNode()).sendAck(key);
 			}
 		}
 		removeEl.clear();
@@ -307,7 +307,7 @@ public abstract class OperatorType implements Serializable {
 	 */
 	private void changeLastProcessedWindow(DataKey messageData) {
 		this.lastProcessedWindowRecoveryManager.appendData(messageData);
-		this.lastProcessedWindowRecoveryManager.removeDataOldestValue();
+		this.lastProcessedWindowRecoveryManager.removeDataOldestValueByKey(messageData);
 	}
 
 	protected abstract float operationType(List<Float> streamDatas);
@@ -477,14 +477,14 @@ public abstract class OperatorType implements Serializable {
 	 *            the socket I used to send the message (equivalent: the node to
 	 *            which I sent it)
 	 */
-	public void manageAck(Key receivedAck, SingleParallelSocket outputToSocket) {
+	public void manageAck(String originalKey,Key receivedAck, SingleParallelSocket outputToSocket) {
 		Debug.printVerbose("Ack received: " + receivedAck);
 		Position ackSenderPosition = outputToSocket.getOtherSideAddress();
 		List<Position> allSubsequentNodes = new ArrayList<>();
 		for (List<Position> curr : this.destination.values()) {
 			allSubsequentNodes.addAll(curr);
 		}
-		this.recoveryManagerForMessagesSentAndNotAcknowledged.reactToAck(receivedAck, ackSenderPosition,
+		this.recoveryManagerForMessagesSentAndNotAcknowledged.reactToAck(originalKey,receivedAck, ackSenderPosition,
 				allSubsequentNodes);
 
 	}

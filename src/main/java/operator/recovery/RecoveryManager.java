@@ -139,12 +139,21 @@ public class RecoveryManager {
     }
 
 
-    public void removeDataOldestValue()
+    /**
+     * Remove from the file the value with same original key and lowest sequence number
+     * @param originalKey
+     */
+    public void removeDataOldestValueByKey(DataKey originalKey)
     {
-        if (getAllOrEmptyList().size() > 1)
-            drawDataFromFileList(this.destinationFile);
+    	List<DataKey> all=getAllOrEmptyList();
+    	DataKey toDelete=originalKey.oldestInListWithSameOriginalKey(all);
+    	all.remove(toDelete);
+    	store(all);
     }
 
+   
+    
+    
     /**
      * Remove from file all values older than anyone in the given list.
      * @param sources
@@ -221,10 +230,11 @@ public class RecoveryManager {
      * @param ackSenderPosition
      * @param allAcksNeeded
      */
-    public void reactToAck(Key receivedAck, Position ackSenderPosition, Collection<Position> allAcksNeeded)
+    public void reactToAck(String originalKey,Key receivedAck, Position ackSenderPosition, Collection<Position> allAcksNeeded)
     {
         List<DataKey> currentlyInFile=getAllOrEmptyList();
         currentlyInFile.stream()
+        		.filter(msg->msg.getOriginalKey().equals(originalKey))
                 .filter(datakey->datakey.hasOlderOrEqualSequenceNumberThanOther(receivedAck))
                 .filter(correctMessage->!correctMessage.getSources().contains(ackSenderPosition))
                 .forEach(messageInNeedOfAck->messageInNeedOfAck.addSource(ackSenderPosition));
