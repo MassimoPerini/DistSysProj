@@ -10,6 +10,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by massimo on 22/12/17.
@@ -25,6 +26,7 @@ public class ProcessOperator {
                 .registerSubtype(Min.class).registerSubtype(Avg.class).registerSubtype(Max.class);
         Gson gson  = new GsonBuilder().enableComplexMapKeySerialization().registerTypeAdapterFactory(rtTest).create();
 
+        //Type fooTypeMap = new TypeToken<Map<Position, Position>>() {}.getType();
         OperatorType o = gson.fromJson(args[0], OperatorType.class);
         Debug.printVerbose("Operazione assegnata: "+o.toString());
         o.deploy();

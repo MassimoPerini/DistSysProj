@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import javafx.geometry.Pos;
 import operator.recovery.DataKey;
 import operator.recovery.RecoveryManager;
 import operator.types.OperatorType;
@@ -26,6 +27,17 @@ import java.util.*;
 /**
  * Created by higla on 21/02/2018.
  * This class is a temporary class used to generate the gson input
+ *
+ *
+ * Per creare un nuovo grafo bisogna:
+ * 1) Identificare una topologia di rete (nodi, operatori sui nodi, livello di parallelismo per ogni nodo)
+ * 2) Creare le rispettive Position composte da Address e Port.
+ * Ogni OperatorType ha:
+ * SOURCE => Position in cui apro il server. Se è IP:null, è il primo nodo e prendo in input da file
+ * ListaListe => Per permettere il parallelismo, in output ho una lista di liste.
+ * La prima lista mi identifica l'OutputToSocket, la seconda la SingleParallelSocket.
+ * mappaDiPosition => per ogni position ho mappata una porta --> bind.
+ * 3) Creare operator deployment utilizzando Source => sarà l'ip a cui il supervisore farà l'heartbeat
  */
 public class InputMakerJSON {
     public static void main(String[] args) {
@@ -33,17 +45,17 @@ public class InputMakerJSON {
         Debug.printVerbose("Main inputMaker started");
         Gson writeGson;
         Position firstSocket;
-        Position parallelSocket;
+        Position parallelSocket;/*
         try {
             firstSocket = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 1340);
             parallelSocket = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 1345);
         }
-        catch (UnknownHostException e){
+        catch (UnknownHostException e){*/
             firstSocket = new Position("127.0.0.1", 1340);
             parallelSocket = new Position("127.0.0.1", 1345);
-        }
+        //}
 
         Position secondSocket = new Position ("127.0.0.1", 1341);
         Position thirdSocket =  new Position ("127.0.0.1", 1349);;
@@ -55,9 +67,10 @@ public class InputMakerJSON {
         listPositionFirst.add(secondSocket);
         listPositionFirst.add(thirdSocket);
         listIntegerFirst.add(51234);
+        //used to connect the node to the supervisor
         Position pos1;
         Position pos2;
-        Position pos3;
+        Position pos3;/*
         try {
             pos1 = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 12345);
@@ -66,11 +79,11 @@ public class InputMakerJSON {
             pos3 = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 12347);
         }
-        catch (UnknownHostException e){
+        catch (UnknownHostException e){*/
             pos1 = new Position("127.0.0.1", 12345);
             pos2 = new Position("127.0.0.1", 12346);
             pos3 = new Position("127.0.0.1", 12347);
-        }
+        //}
 
 
 
@@ -83,19 +96,29 @@ public class InputMakerJSON {
         //out lista di gente a cui devo inviare
         //exactPosition
         //position deve avere IP uguale a first socket.. => locale vs 10.... non funziona
-        OperatorType operatorOne = new Sum(2,2, null, out, pos1);
-        OperatorType operatorTwo = new Sum(3,3, firstSocket, new LinkedList<>(), pos2);
-        OperatorType operatorParallel = new Sum(3,3, parallelSocket, new LinkedList<>(), pos3);
 
+        List<Position> fakeList = new LinkedList<>();
+        /*
+        mappaPrimoOperatore = inizializzaMappa(out, pos1, 5555);
+        mappaSecondoOperatore = inizializzaMappa(fakeList, pos2, 5565);
+        mappaTerzoOperatore = inizializzaMappa(fakeList, pos3, 5575);
+        */
+        List<Position> portToConnectWith = new LinkedList();
+        String localAddress = "127.0.0.1";
+        portToConnectWith.add(new Position(localAddress, 5555));
+        portToConnectWith.add(new Position(localAddress, 5556));
+        OperatorType operatorOne = new Sum(2,2, new Position(localAddress, -1), out, portToConnectWith);
+        OperatorType operatorTwo = new Sum(3,3, firstSocket, new LinkedList<>(), fakeList);
+        OperatorType operatorParallel = new Sum(3,3, parallelSocket, new LinkedList<>(), fakeList);
+
+
+        //deployment è la position dell'heartbeat
         OperatorDeployment firstOperator = new OperatorDeployment(
-                operatorOne, "", firstSocket);
+                operatorOne, "");
         OperatorDeployment secondOperator = new OperatorDeployment(
-                operatorTwo, "", secondSocket);
+                operatorTwo, "");
         OperatorDeployment parallelOperator = new OperatorDeployment(
-                operatorParallel, "", thirdSocket);
-
-        //OperatorDeployment thirdOperator = new OperatorDeployment(new Sum(4,4, null, new LinkedList<>()), "");
-        //firstOperator.getOperatorType().getPortToUseToConnectToPosition().put(firstSocket, 51234);
+                operatorParallel, "");
 
         Graph<OperatorDeployment> g =new Graph<>();
         Vertex<OperatorDeployment> v1=new Vertex<>(1,firstOperator);
@@ -122,8 +145,11 @@ public class InputMakerJSON {
                 .setPrettyPrinting()
                 .create();  //setPrettyPrinting
 
+        Type fooTypeMap = new TypeToken<Map<Position, Position>>() {}.getType();
         Type fooType = new TypeToken<Graph<OperatorDeployment>>() {}.getType();
+
         String output = writeGson.toJson(g, fooType);
+        //output = writeGson.toJson(output, fooTypeMap);
         //Debug.printVerbose(output);
         try {
             String fileName = "graphDeployInput.json";
@@ -137,18 +163,18 @@ public class InputMakerJSON {
         Graph<OperatorDeployment> graph = new Gson().fromJson(output, fooType);
 
         Debug.printVerbose(graph.toString());
-        /*
-        RecoveryManager rm = new RecoveryManager("example.json");
-        DataKey d = new DataKey(1, "A");
-        DataKey d2 = new DataKey(1, "B");
-        rm.putDataInFile("example.json" , d);
-        System.out.println(rm.readDataFromFile("example.json"));
-        rm.putDataInFile("example.json", d2);
-        System.out.println(rm.readDataFromFile("example.json"));
-        System.out.println(rm.readAndRemoveDataFromFile("example.json"));
-        rm.appendDataInFileList(d);
-        rm.appendDataInFileList(d2);
-        rm.appendDataInFileList(d2);*/
-        //Debug.printVerbose(data.toString());
+
+    }
+
+    private static Map<Position,Position> inizializzaMappa(List<List<Position>> out, Position pos1, int porta){
+        Map<Position, Position> mappaOperatore = new HashMap<>();
+        for (List<Position> positions : out) {
+            for (Position position : positions) {
+                mappaOperatore.put(position, new Position(pos1.getAddress(), porta));
+                porta++;
+            }
+        }
+        Debug.printVerbose(mappaOperatore.toString());
+        return mappaOperatore;
     }
 }

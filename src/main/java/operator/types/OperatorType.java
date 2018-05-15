@@ -27,16 +27,19 @@ import javax.xml.crypto.Data;
  * Created by massimo on 11/02/18.
  *
  * Represents the generic type of operator
- *
+ *  source => porta in cui apro il server
+ *  listaListe => in ogni sottolista ho i socket in parallelo a cui devo comunicare
+ *  exactPosition (dovrebbe diventare una mappa) => sono i socket lato processo quando si fa una connessione
  */
 public abstract class OperatorType implements Serializable {
 
 	final int size;
 	final int slide;
-	final Position exactPosition;
+	//this list maps what socket i want to create considering the port into what position i want it to communicate
+	final List<Position> exactPosition;
 	private int sequenceNumber;
 
-	private @Nullable Position source;
+	private final Position source;
 
 	/**
 	 * This map is used to retrieve the position of subsequent nodes that sent
@@ -98,9 +101,14 @@ public abstract class OperatorType implements Serializable {
 	 * public OperatorType(){ this.messageAddressees = new LinkedList<>();
 	 * this.size = 0; this.slide = 0; }
 	 */
+    /*
+        source => porta in cui apro il server
+        listaListe => in ogni sottolista ho i socket in parallelo a cui devo comunicare
+        exactPosition (dovrebbe diventare una mappa) => sono i socket lato processo quando si fa una connessione
 
+     */
 	public OperatorType(@NotNull List<List<Position>> messageAddressees, int size, int slide, @Nullable Position socket,
-			Position exactPosition) {
+                        List<Position> exactPosition) {
 		this.messageAddressees = messageAddressees;
 		this.size = size;
 		this.slide = slide;
@@ -118,7 +126,7 @@ public abstract class OperatorType implements Serializable {
 	 * doesn't invoke constructor
 	 */
 	private void recoverySetup() {
-		if (source == null) {
+		if (source.getPort() < 0) {
 			this.lastProcessedWindowRecoveryManager = new RecoveryManager(
 					"output_handler_recovery" + "origin" + ".txt");
 			this.recoveryManagerForMessagesSentAndNotAcknowledged = new RecoveryManager(
@@ -281,9 +289,16 @@ public abstract class OperatorType implements Serializable {
 		List<DataKey> removeEl = data.subList(0, this.slide);
 		List<DataKey> toSendAck = data.subList(0, this.size);
 
-		if (source != null) {
+		if (source.getPort() > 0) {
 			for (DataKey key : toSendAck) {
-				dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
+			    try {
+
+                    dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
+                }
+                catch(Error e){
+			        Debug.printError(e.toString());
+			        Debug.printVerbose("Printing " + dataSenders.toString());
+                }
 			}
 		}
 		removeEl.clear();
@@ -333,11 +348,10 @@ public abstract class OperatorType implements Serializable {
 			// No socket output -> write on file
 			this.destination.put(new OutputToFile(this), null);
 		} else {
-			int test = 0;
 			for (List<Position> messageAddressee : messageAddressees) {
 				// this is an output
 				List<Socket> sockets = new LinkedList<>();
-
+                int count = 0;
 				for (Position position : messageAddressee) {
 					boolean keepLooping = false;
 					do {
@@ -348,16 +362,17 @@ public abstract class OperatorType implements Serializable {
 							 * Position(InetAddress.getLocalHost().
 							 * getCanonicalHostName(), 12345):source;
 							 */
+
 							Socket socket = new Socket();
-							Debug.printVerbose(this.exactPosition.toString());
-							socket.bind(new InetSocketAddress(this.exactPosition.getAddress(),
-									this.exactPosition.getPort() + test));
+							Position currentPointingPosition = this.exactPosition.get(count);
+							Debug.printVerbose(currentPointingPosition.toString());
+							socket.bind(new InetSocketAddress(currentPointingPosition.getAddress(),
+                                    currentPointingPosition.getPort()));
 							socket.connect(new InetSocketAddress(position.getAddress(), position.getPort()));
 
 							sockets.add(socket);
 							keepLooping = false;
-							test += 30;
-
+                            count++;
 						} catch (IOException e) {
 							// If socket isn't ready i cycle waiting for it to
 							// be ready
@@ -387,7 +402,7 @@ public abstract class OperatorType implements Serializable {
 		// A possible modification could be having an operator spawned
 		// automatically and let it handle this thing,
 		// for now we assume that the user gives us a well-formed input
-		if (source == null) {
+		if (source.getPort() < 0) {
 			InputFromFile inputFromFile = new InputFromFile("src/main/resources/input.txt");
 			// Start input threads
 			executorService.submit(() -> inputFromFile.startReceiving(this));
@@ -495,4 +510,7 @@ public abstract class OperatorType implements Serializable {
 		this.portToUseToConnectToPositionPort = portToUseToConnectToPort;
 	}
 
+    public Position getSource() {
+        return source;
+    }
 }
