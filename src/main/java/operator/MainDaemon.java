@@ -2,7 +2,12 @@ package operator;
 
 import operator.communication.DaemonOperatorInfo;
 import operator.communication.DaemonSocket;
+import org.apache.logging.log4j.ThreadContext;
+import supervisor.InputMakerJSON;
 import utils.Debug;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 import java.io.IOException;
 import java.net.Socket;
@@ -24,6 +29,13 @@ public class MainDaemon {
     private static final int PORT = 1337;
 
     public static void main(String [] args) throws URISyntaxException, IOException {
+
+        ThreadContext.put("logFileName", "daemon");
+
+
+
+        Logger logger = LogManager.getLogger();
+        logger.debug("debug");
 
         Debug.setLevel(Debug.LEVEL_VERBOSE);
         DaemonOperatorInfo daemonOperatorInfo = new DaemonOperatorInfo();

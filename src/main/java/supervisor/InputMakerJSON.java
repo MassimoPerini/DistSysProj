@@ -8,6 +8,9 @@ import operator.recovery.DataKey;
 import operator.recovery.RecoveryManager;
 import operator.types.OperatorType;
 import operator.types.Sum;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.communication.message.MessageSupervisor;
 import supervisor.communication.message.OperatorDeployment;
 import supervisor.graph_representation.Graph;
@@ -23,6 +26,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 
+
+
 /**
  * Created by higla on 21/02/2018.
  * This class is a temporary class used to generate the gson input
@@ -30,6 +35,16 @@ import java.util.*;
 public class InputMakerJSON {
     public static void main(String[] args) {
         Debug.setLevel(3);
+
+        Logger logger = LogManager.getLogger();
+
+        ThreadContext.put("logFileName", "InputMakerJSON");
+
+        logger.warn("This is warn : ");
+        logger.error("This is error : ");
+        logger.fatal("This is fatal : ");
+
+
         Debug.printVerbose("Main inputMaker started");
         Gson writeGson;
         Position firstSocket;
@@ -60,14 +75,14 @@ public class InputMakerJSON {
         Position pos3;
         try {
             pos1 = new Position(InetAddress.getLocalHost().
-                    getCanonicalHostName(), 12345);
+                    getCanonicalHostName(), 12355);
             pos2 = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 12346);
             pos3 = new Position(InetAddress.getLocalHost().
                     getCanonicalHostName(), 12347);
         }
         catch (UnknownHostException e){
-            pos1 = new Position("127.0.0.1", 12345);
+            pos1 = new Position("127.0.0.1", 12355);
             pos2 = new Position("127.0.0.1", 12346);
             pos3 = new Position("127.0.0.1", 12347);
         }
