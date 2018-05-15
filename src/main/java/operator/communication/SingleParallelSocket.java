@@ -3,12 +3,14 @@ package operator.communication;
 import operator.recovery.DataKey;
 import operator.recovery.Key;
 import operator.types.OperatorType;
+import supervisor.Position;
 import utils.Debug;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Created by massimo on 05/05/18.
@@ -25,19 +27,17 @@ public class SingleParallelSocket {
 
 
     public SingleParallelSocket(Socket socket, OperatorType operatorType) {
-        this.socket = socket;
-
+    	this.socket = socket;
+        this.addressToReconnectWith = socket.getInetAddress().toString();
+        this.portToReconnectWith = socket.getPort();
+        
         try {
             this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
             this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
 
         } catch (IOException e) {
-            Debug.printDebug(e);    //todo gestire morte prematura (come per l'invio)
+            Debug.printDebug(e);    
         }
-        //todo: check if both work
-        this.addressToReconnectWith = socket.getInetAddress().toString();
-        this.portToReconnectWith = socket.getPort();
-
         this.dataFeeder = operatorType;
     }
 
@@ -47,7 +47,7 @@ public class SingleParallelSocket {
             this.socketOut.flush();
         } catch (IOException e) {
             Debug.printDebug(e);
-            //dataFeeder.stopOutput(this); todo fix here
+            dataFeeder.stopOutput(this); //todo fix here
             Boolean tryToReconnect = true;
             while(tryToReconnect){
                 try {
@@ -55,7 +55,7 @@ public class SingleParallelSocket {
                     this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
                     this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
                     tryToReconnect = false;
-                    //this.dataFeeder.restartOutput(this); todo fix here
+                    this.dataFeeder.restartOutput(this); //todo fix here
                 } catch (IOException e1) {
                     e1.printStackTrace();
                     Debug.printVerbose("Waiting for the node to come back alive");
@@ -77,9 +77,9 @@ public class SingleParallelSocket {
         {
             try {
 
-                Key receivedAck=(Key)this.socketIn.readObject();
+                DataKey receivedAck=(DataKey)this.socketIn.readObject();
                 Debug.printVerbose("Received an ack: "+receivedAck);
-                // dataFeeder.manageAck(receivedAck,this); todo fix here
+                 dataFeeder.manageAck(receivedAck.getOriginalKey(),receivedAck.getAggregator(),this);// todo fix here
             } catch (IOException e)
             {
                 Debug.printError(e);
@@ -102,5 +102,11 @@ public class SingleParallelSocket {
             Debug.printError("IOException on closing...");
         }
     }
+    
+    public Position getOtherSideAddress()
+    {
+    	return new Position(this.addressToReconnectWith,this.portToReconnectWith);
+    }
+    
 
 }

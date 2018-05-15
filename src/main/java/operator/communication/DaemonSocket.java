@@ -9,7 +9,6 @@ import operator.communication.message.ReplyHeartBeat;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import sun.plugin2.message.Message;
 import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.MessageSupervisor;
 import supervisor.communication.message.OperatorDeployment;

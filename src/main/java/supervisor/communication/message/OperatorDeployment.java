@@ -42,16 +42,15 @@ public class OperatorDeployment implements MessageSupervisor {
 
 
 
-    public OperatorDeployment(@NotNull OperatorType operatorType, String jarFile, Position position
-                              )
+    public OperatorDeployment(@NotNull OperatorType operatorType, String jarFile)
     {
         this.jarFile = jarFile;
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(OperatorType.class, "type")
                 .registerSubtype(Sum.class).registerSubtype(Min.class).registerSubtype(Avg.class).registerSubtype(Max.class);
-        this.ownPosition = position;
+        this.ownPosition = operatorType.getSource();
         Gson gson = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
         outJson = gson.toJson(operatorType, OperatorType.class);
-        System.out.println("out json: "+outJson);
+        Debug.printVerbose("out json: "+outJson);
 
     }
     /***

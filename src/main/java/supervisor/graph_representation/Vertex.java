@@ -39,7 +39,7 @@ public class Vertex<T> implements Comparable<Vertex<T>>{
 	}
 
 	public int getId() {
-		// TODO Auto-generated method stub
+		//Auto-generated method stub
 		return id;
 	}
 

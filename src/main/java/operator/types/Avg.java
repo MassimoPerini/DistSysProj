@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Fulvio on 06/03/18.
@@ -19,7 +20,7 @@ public class Avg extends OperatorType {
      * @param slide The slide of the sum
      */
     public Avg(int size, int slide, @Nullable Position source, @NotNull List<List<Position>> destination,
-               Position exactPosition) {
+               List<Position> exactPosition) {
         super(destination, size, slide, source, exactPosition);
     }
 
