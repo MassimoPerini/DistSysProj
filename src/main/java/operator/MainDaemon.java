@@ -2,7 +2,12 @@ package operator;
 
 import operator.communication.DaemonOperatorInfo;
 import operator.communication.DaemonSocket;
+import org.apache.logging.log4j.ThreadContext;
+import supervisor.InputMakerJSON;
 import utils.Debug;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 import java.io.IOException;
 import java.net.Socket;
@@ -25,6 +30,9 @@ public class MainDaemon {
 
     public static void main(String [] args) throws URISyntaxException, IOException {
 
+        Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "daemon");
+
         Debug.setLevel(Debug.LEVEL_VERBOSE);
         DaemonOperatorInfo daemonOperatorInfo = new DaemonOperatorInfo();
 
@@ -32,8 +40,7 @@ public class MainDaemon {
         if (args.length > 0) {
             jarFile = args[0];
         }
-
-        Debug.printVerbose("I'm the daemon, I should contact the supervisor");
+        logger.debug("I'm the daemon, I should contact the supervisor");
             //Process pro = Runtime.getRuntime().exec("java ProcessOperator");
 
         URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();

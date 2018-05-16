@@ -1,5 +1,8 @@
 package supervisor;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.communication.SocketListener;
 import supervisor.communication.SocketManager;
 import utils.Debug;
@@ -13,7 +16,11 @@ import java.util.concurrent.Executors;
 public class MainSupervisor {
     public static void main(String[] args) {
         Debug.setLevel(Debug.LEVEL_VERBOSE);
-        Debug.printVerbose("Main Supervisor Lanciato");
+
+        Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "supervisor");
+
+        logger.info("Main Supervisor Lanciato");
 
         SocketManager socketManager = new SocketManager();
         SocketListener socketListener = new SocketListener(socketManager);
@@ -23,5 +30,14 @@ public class MainSupervisor {
         ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(socketListener::run);
         executorService.submit(graphDeployer);
+    }
+}
+
+class AA{
+    public void s()
+    {
+        Logger logger = LogManager.getLogger();
+        logger.info("Main Supervisor Lanciato");
+
     }
 }

@@ -8,6 +8,8 @@ import operator.communication.DaemonOperatorInfo;
 import operator.communication.message.LogMessageOperator;
 import operator.communication.message.MessageOperator;
 import operator.types.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import supervisor.Position;
 import utils.Debug;
@@ -50,7 +52,6 @@ public class OperatorDeployment implements MessageSupervisor {
         this.ownPosition = operatorType.getSource();
         Gson gson = new GsonBuilder().registerTypeAdapterFactory(rtTest).create();
         outJson = gson.toJson(operatorType, OperatorType.class);
-        Debug.printVerbose("out json: "+outJson);
 
     }
     /***
@@ -61,14 +62,15 @@ public class OperatorDeployment implements MessageSupervisor {
         try {
             URI folderUri = ProcessOperator.class.getProtectionDomain().getCodeSource().getLocation().toURI();
             String packageClass = ProcessOperator.class.getCanonicalName();
-            Debug.printVerbose(outJson);
+            Logger logger = LogManager.getLogger();
+            logger.info("executing... "+outJson);
 
         /*
             socketOut.println(res);
             socketOut.flush();
          */
 
-            Debug.printVerbose("Package class: " + packageClass + "\nfolderStart: " + folderUri.toString());
+        logger.info("Package class: " + packageClass + "\nfolderStart: " + folderUri.toString());
 
             String unixClassPath = "target/*:target/dependency/*";
             String windClassPath = "target\\*;target\\dependency\\*";
@@ -82,7 +84,7 @@ public class OperatorDeployment implements MessageSupervisor {
 
             ProcessBuilder pb;
             if (jarFile.equals("")) {
-                Debug.printVerbose("-Dexec.mainClass=\"it.polimi.distsys." + packageClass + "\"");
+                logger.debug("-Dexec.mainClass=\"it.polimi.distsys." + packageClass + "\"");
 
                 pb = new ProcessBuilder(osClassPath, "exec:java", "-Dexec.mainClass=" + packageClass, "-Dexec.args=\"" + outJson + "\"");
                 //pb.environment().put("PATH", System.getProperty("PATH"));
@@ -112,8 +114,8 @@ public class OperatorDeployment implements MessageSupervisor {
         }
         catch (Exception e)
         {
-            e.printStackTrace();
-            Debug.printError(e);
+            Logger logger = LogManager.getLogger();
+            logger.error(e);
             //return new LogMessageOperator("Error");
             return null;
 

@@ -10,6 +10,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import operator.recovery.DataKey;
 import operator.recovery.Key;
 import operator.types.OperatorType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.Position;
 import utils.Debug;
 
@@ -51,6 +54,9 @@ public class InputFromSocket implements OperatorInputQueue{
 	@Override
 	public void startReceiving(OperatorType operatorType) {
 		messagesAddressee=operatorType;
+		Logger logger = LogManager.getLogger();
+		ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+
 		new Thread(this::keepSendingAcksWhenReady).start();
 		while(true)
 		{
@@ -59,7 +65,8 @@ public class InputFromSocket implements OperatorInputQueue{
 				DataKey messageData = (DataKey) this.socketIn.readObject();
 				messageData.setAggregator(positionOfTheOtherSide);
 				operatorType.addToMessageQueue(messageData);
-				Debug.printVerbose("Received "+ messageData);
+				logger.debug("Received "+ messageData);
+
 			} catch (IOException e) {
 				Debug.printError(e);
 			} catch (ClassNotFoundException e) {
@@ -79,11 +86,13 @@ public class InputFromSocket implements OperatorInputQueue{
 	
 	public void keepSendingAcksWhenReady()
 	{
+		Logger logger = LogManager.getLogger();
 		while(true)
 		{
 			try {
 				socketOut.writeObject(acksToSend.take());
-				Debug.printVerbose("Sending an ack");
+
+				logger.trace("Sending an ack ");
 			} catch (IOException e) {
 				Debug.printError(e);
 			} catch (InterruptedException e) {

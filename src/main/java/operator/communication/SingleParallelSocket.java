@@ -3,6 +3,9 @@ package operator.communication;
 import operator.recovery.DataKey;
 import operator.recovery.Key;
 import operator.types.OperatorType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.Position;
 import utils.Debug;
 
@@ -30,13 +33,14 @@ public class SingleParallelSocket {
     	this.socket = socket;
         this.addressToReconnectWith = socket.getInetAddress().toString();
         this.portToReconnectWith = socket.getPort();
-        
+
         try {
             this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
             this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
 
         } catch (IOException e) {
-            Debug.printDebug(e);    
+            Logger logger = LogManager.getLogger();
+            logger.error(e);
         }
         this.dataFeeder = operatorType;
     }
@@ -46,6 +50,8 @@ public class SingleParallelSocket {
             this.socketOut.writeObject(messageData);
             this.socketOut.flush();
         } catch (IOException e) {
+            Logger logger = LogManager.getLogger();
+            logger.error(e);
             Debug.printDebug(e);
             dataFeeder.stopOutput(this); //todo fix here
             Boolean tryToReconnect = true;
@@ -57,14 +63,13 @@ public class SingleParallelSocket {
                     tryToReconnect = false;
                     this.dataFeeder.restartOutput(this); //todo fix here
                 } catch (IOException e1) {
-                    e1.printStackTrace();
-                    Debug.printVerbose("Waiting for the node to come back alive");
+                    logger.error(e1);
+                    logger.error("Waiting for the node to come back alive");
                     //todo check if it's okays
                     try {
                         Thread.sleep((long) (200));
                     } catch (InterruptedException e2) {
-                        e2.printStackTrace();
-                        Debug.printVerbose("Thread sleep failed");
+                        logger.error(e2);
                     }
                 }
             }
@@ -73,19 +78,19 @@ public class SingleParallelSocket {
 
     public void keepAcknowledging()
     {
+        Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "operator"+Debug.getUuid());
         while(true)
         {
             try {
 
                 DataKey receivedAck=(DataKey)this.socketIn.readObject();
-                Debug.printVerbose("Received an ack: "+receivedAck);
+                logger.trace("Received an ack: "+receivedAck);
                  dataFeeder.manageAck(receivedAck.getOriginalKey(),receivedAck.getAggregator(),this);// todo fix here
-            } catch (IOException e)
+            } catch (IOException | ClassNotFoundException e)
             {
-                Debug.printError(e);
-            } catch (ClassNotFoundException e)
-            {
-                Debug.printError(e);
+
+                logger.error(e);
             }
         }
     }
@@ -99,7 +104,8 @@ public class SingleParallelSocket {
         }
         catch (IOException e)
         {
-            Debug.printError("IOException on closing...");
+            Logger logger = LogManager.getLogger();
+            logger.error(e);
         }
     }
     

@@ -23,7 +23,6 @@ public class HeartbeatRequest implements MessageSupervisor {
     @Override
     public MessageOperator execute(DaemonOperatorInfo daemonOperatorInfo) {
         List<Position> failedProcesses = daemonOperatorInfo.getAndRemoveFailedProcesses();
-        Debug.printVerbose("FAILED PROCESSES: "+failedProcesses);
 
         ReplyHeartBeat replyHeartBeat = new ReplyHeartBeat(failedProcesses);
 

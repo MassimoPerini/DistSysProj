@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import operator.communication.message.LogMessageOperator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.jetbrains.annotations.NotNull;
 import supervisor.communication.message.HeartbeatRequest;
 import supervisor.communication.message.MessageSupervisor;
@@ -55,12 +58,15 @@ public class TaskSocket{
         //receive
         String input;
         //Expected login here
-        Debug.printVerbose("Socket receiving....");
+        Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "supervisor");
+
+        logger.debug("Socket receiving....");
 
         try {
             //while ((input = socketIn.readLine()) != null) {
                 input = socketIn.readLine();
-                Debug.printVerbose("RECEIVED: " + input);
+                logger.trace("RECEIVED: " + input);
                 MessageOperator messageSupervisor = readGson.fromJson(input, MessageOperator.class);
                 List <MessageSupervisor> operatorDeployments = messageSupervisor.execute(sortedGraph);
 
@@ -71,25 +77,25 @@ public class TaskSocket{
                 }
 
             //}
-        } catch (IOException e) {
-            Debug.printError(e);
-        }
-        catch (Exception e)
+        } catch (Exception e)
         {
-            Debug.printError(e);
+            logger.error(e);
         }
     }
 
     void send(@NotNull MessageSupervisor messageServer){
+        Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "supervisor");
+
         executorService.submit (() -> {
             try {
                 String res = writeGson.toJson(messageServer, MessageSupervisor.class);
-                Debug.printVerbose("SERVER: SENDING " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
+                logger.trace("SERVER: SENDING " + res + " TO " + socket.getLocalAddress().getHostAddress() + " SOCKET");
                 socketOut.println(res);
                 socketOut.flush();
             }catch (Exception e)
             {
-                Debug.printError(e);
+                logger.error(e);
             }
         });
     }
@@ -102,7 +108,8 @@ public class TaskSocket{
         }
         catch (IOException e)
         {
-            Debug.printError("IOException on closing...");
+            Logger logger = LogManager.getLogger();
+            logger.error(e);
         }
     }
 

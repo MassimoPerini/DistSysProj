@@ -3,6 +3,9 @@ package operator.communication;
 import operator.recovery.DataKey;
 import operator.recovery.Key;
 import operator.types.OperatorType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import utils.Debug;
 
 import java.io.BufferedReader;
@@ -30,14 +33,19 @@ public class InputFromFile implements OperatorInputQueue{
             BufferedReader b = new BufferedReader(new FileReader(this.path));
 
             String readLine = "";
-            Debug.printVerbose("Reading file using Buffered Reader");
+
+            Logger logger = LogManager.getLogger();
+            ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+            logger.debug("Reading file using Buffered Reader ");
+
             while ((readLine = b.readLine()) != null) {
 
             	Key sender=new Key(null, ++conta);
             	String [] row = readLine.split(",");
             	DataKey messageData = new DataKey(row[0], Double.parseDouble(row[1]), sender,null);
                 operatorType.addToMessageQueue(messageData);
-                Debug.printVerbose("Printo" + this.conta);
+                logger.trace("read ...  "+this.conta);
+
                 //Thread.sleep((long)(Math.random()*2000));
             }
         }

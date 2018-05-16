@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG">
+<Properties>
+    <Property name="log-path">logs</Property>
+</Properties>
+<Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+        <PatternLayout pattern="%d{yyyy-MMM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n" />
+    </Console>
+
+    <Routing name="RoutingAppender">
+    <Routes pattern="${ctx:logFileName}">
+    <Route>
+
+
+    <RollingFile name="RollingFile" fileName="${log-path}/${ctx:logFileName}.log"
+                 filePattern="${log-path}/${ctx:logFileName}-%d{yyyy-MM-dd}-%i.log" >
+        <PatternLayout>
+            <pattern>%d{dd/MMM/yyyy HH:mm:ss,SSS}- %c{1}: %m%n</pattern>
+        </PatternLayout>
+        <Policies>
+            <OnStartupTriggeringPolicy />
+        </Policies>
+        <DefaultRolloverStrategy max="8"/>
+    </RollingFile>
+    </Route>
+
+        <!-- By having this set to ${ctx:logFileName} it will match when filename
+             is not set in the context -->
+        <Route ref="Console" key="${ctx:logFileName}"/>
+    </Routes>
+    </Routing>
+
+</Appenders>
+<Loggers>
+    <Root level="trace" additivity="false">
+        <AppenderRef ref="RoutingAppender"/>
+    </Root>
+</Loggers>
+
+</Configuration>

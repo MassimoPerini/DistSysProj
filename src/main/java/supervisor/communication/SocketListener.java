@@ -3,6 +3,9 @@ package supervisor.communication;
 import operator.types.OperatorType;
 import operator.types.SocketRepr;
 import operator.types.Sum;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import supervisor.Position;
 import supervisor.communication.message.OperatorDeployment;
 import utils.Debug;
@@ -34,10 +37,15 @@ public class SocketListener{
      */
 
     public void run() {
+
+        Logger logger = LogManager.getLogger();
+        ThreadContext.put("logFileName", "supervisor");
+
         try {
             //creats the socket
+
             ServerSocket serverSocket = new ServerSocket(PORT);
-            Debug.printVerbose("SERVER SOCKET READY ON PORT" + PORT);
+            logger.info("SERVER SOCKET READY ON PORT" + PORT);
 
             int i=0;
 
@@ -45,7 +53,7 @@ public class SocketListener{
                 //Waits for a new client to connect
                 Socket inputSocket = serverSocket.accept();
                 // creates the view (server side) associated with the new client
-                Debug.printVerbose("New connection on Socket, assuming a daemon");
+                logger.debug("New connection on Socket, assuming a daemon");
                 TaskSocket taskSocket = new TaskSocket(inputSocket);
                 NodeSocket nodeSocket = new NodeSocket(taskSocket);
                 this.socketManager.addSocket(nodeSocket);
@@ -76,8 +84,7 @@ public class SocketListener{
         }
         catch (Exception e)
         {
-            Debug.printError(e);
-            e.printStackTrace();
+            logger.error(e);
         }
     }
 }
