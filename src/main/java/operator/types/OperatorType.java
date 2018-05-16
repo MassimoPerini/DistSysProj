@@ -291,7 +291,7 @@ public abstract class OperatorType implements Serializable {
 
 		if (source.getPort() > 0) {
 			for (DataKey key : toSendAck) {
-				dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
+				dataSenders.get(key.getAggregator().getNode()).sendAck(key);
 			}
 		}
 		removeEl.clear();
