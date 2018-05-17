@@ -350,10 +350,10 @@ public abstract class OperatorType implements Serializable {
 			// No socket output -> write on file
 			this.destination.put(new OutputToFile(this), null);
 		} else {
+			int count = 0;
 			for (List<Position> messageAddressee : messageAddressees) {
 				// this is an output
 				List<Socket> sockets = new LinkedList<>();
-                int count = 0;
 				for (Position position : messageAddressee) {
 					boolean keepLooping = false;
 					do {
@@ -374,8 +374,8 @@ public abstract class OperatorType implements Serializable {
 
 							sockets.add(socket);
 							logger.error(socket.toString());
+							count++;
 							keepLooping = false;
-                            count++;
 						} catch (IOException e) {
 							// If socket isn't ready i cycle waiting for it to
 							// be ready
