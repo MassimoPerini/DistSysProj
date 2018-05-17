@@ -1,5 +1,10 @@
 package utils;
 
+import com.google.gson.GsonBuilder;
+
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.UUID;
 
@@ -238,7 +243,23 @@ public class Debug {
             }
             return stringBuilder.toString();
         }
-
+    public static void printFile(String string, String nameFile)
+    {
+        try{
+            nameFile += ".txt";
+            FileWriter writer=new FileWriter(nameFile, false);
+            writer.write( string+"\n" );
+            writer.close();
+        }
+        catch(FileNotFoundException e)
+        {
+            System.out.println("File wasn't found!");
+        }
+        catch(IOException e)
+        {
+            System.out.println("Err");
+        }
+    }
     public static UUID getUuid() {
         return uuid;
     }

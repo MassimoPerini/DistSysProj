@@ -373,6 +373,7 @@ public abstract class OperatorType implements Serializable {
 							socket.connect(new InetSocketAddress(position.getAddress(), position.getPort()));
 
 							sockets.add(socket);
+							logger.error(socket.toString());
 							keepLooping = false;
                             count++;
 						} catch (IOException e) {
@@ -458,6 +459,7 @@ public abstract class OperatorType implements Serializable {
 
 		for (OperatorOutputQueue operatorOutputQueue : destination.keySet()) {
 			logger.trace(destination.toString());
+			logger.error("Sto mandando a " + destination.toString() + messageData.toString(), this.source.toString());
 			operatorOutputQueue.send(messageData);
 
 		}

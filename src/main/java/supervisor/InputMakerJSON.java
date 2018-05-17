@@ -60,8 +60,8 @@ public class InputMakerJSON {
                     getCanonicalHostName(), 1345);
         }
         catch (UnknownHostException e){*/
-            firstSocket = new Position("127.0.0.1", 1340);
-            parallelSocket = new Position("127.0.0.1", 1345);
+        firstSocket = new Position("127.0.0.1", 1340);
+        parallelSocket = new Position("127.0.0.1", 1345);
         //}
 
         Position secondSocket = new Position ("127.0.0.1", 1341);
@@ -87,18 +87,25 @@ public class InputMakerJSON {
                     getCanonicalHostName(), 12347);
         }
         catch (UnknownHostException e){*/
-            pos1 = new Position("127.0.0.1", 12345);
-            pos2 = new Position("127.0.0.1", 12346);
-            pos3 = new Position("127.0.0.1", 12347);
+        pos1 = new Position("127.0.0.1", 12345);
+        pos2 = new Position("127.0.0.1", 12346);
+        pos3 = new Position("127.0.0.1", 12347);
         //}
 
 
-
+        //la prima lista è per definire le outputQueue, la seconda è per i signleParallelSocket
         List<List<Position>> out = new LinkedList<>();
         List<Position> out2 = new LinkedList<>();
+        List<Position> out3 = new LinkedList<>();
         out2.add(firstSocket);
-        out2.add(parallelSocket);
+        //out3.add(parallelSocket);
         out.add(out2);
+        //out.add(out3);
+
+        List<List<Position>> outFinal = new LinkedList<>();
+        List<Position> outFinalPos = new LinkedList<>();
+        outFinalPos.add(thirdSocket);
+        outFinal.add(outFinalPos);
         //source dove apro il sever
         //out lista di gente a cui devo inviare
         //exactPosition
@@ -113,31 +120,44 @@ public class InputMakerJSON {
         List<Position> portToConnectWith = new LinkedList();
         String localAddress = "127.0.0.1";
         portToConnectWith.add(new Position(localAddress, 5555));
-        portToConnectWith.add(new Position(localAddress, 5556));
-        OperatorType operatorOne = new Sum(2,2, new Position(localAddress, -1), out, portToConnectWith);
-        OperatorType operatorTwo = new Sum(3,3, firstSocket, new LinkedList<>(), fakeList);
-        OperatorType operatorParallel = new Sum(3,3, parallelSocket, new LinkedList<>(), fakeList);
+        //portToConnectWith.add(new Position(localAddress, 5556));
+        List<Position> portNodeTwo = new LinkedList<>();
 
+        List<Position> portNodeThree = new LinkedList<>();
+        portNodeTwo.add(new Position(localAddress, 6555));
+        portNodeThree.add(new Position(localAddress, 6565));
+
+        OperatorType operatorOne = new Sum(2,2, new Position(localAddress, -1), out, portToConnectWith);
+        OperatorType operatorTwo = new Sum(3,3, firstSocket, outFinal, portNodeTwo);
+        //OperatorType operatorParallel = new Sum(3,3, parallelSocket, outFinal, portNodeThree);
+        OperatorType operatorFour = new Sum(2, 2, thirdSocket, new LinkedList<>(), fakeList);
 
         //deployment è la position dell'heartbeat
         OperatorDeployment firstOperator = new OperatorDeployment(
                 operatorOne, "");
         OperatorDeployment secondOperator = new OperatorDeployment(
                 operatorTwo, "");
-        OperatorDeployment parallelOperator = new OperatorDeployment(
-                operatorParallel, "");
+        //OperatorDeployment parallelOperator = new OperatorDeployment(
+        //        operatorParallel, "");
+        OperatorDeployment fourthOperator = new OperatorDeployment(
+                operatorFour, "");
+
 
         Graph<OperatorDeployment> g =new Graph<>();
         Vertex<OperatorDeployment> v1=new Vertex<>(1,firstOperator);
         Vertex<OperatorDeployment> v2=new Vertex<>(2,secondOperator);
-        Vertex<OperatorDeployment> v3=new Vertex<>(3,parallelOperator);
+        //Vertex<OperatorDeployment> v3=new Vertex<>(3,parallelOperator);
+        Vertex<OperatorDeployment> v4=new Vertex<>(4, fourthOperator);
 
         g.asymmConnect(v1, v2, 0);
-        g.asymmConnect(v2, v3, 0);
+        //g.asymmConnect(v1, v3, 0);
+        g.asymmConnect(v2, v4, 0);
+        //g.asymmConnect(v3, v4, 0);
 
         g.addVertex(1, v1);
         g.addVertex(2, v2);
-        g.addVertex(3, v3);
+        //g.addVertex(3, v3);
+        g.addVertex(4, v4);
 
 
         RuntimeTypeAdapterFactory typeAdapterFactory = RuntimeTypeAdapterFactory.of(MessageSupervisor.class, "type")
@@ -152,7 +172,7 @@ public class InputMakerJSON {
                 .setPrettyPrinting()
                 .create();  //setPrettyPrinting
 
-        Type fooTypeMap = new TypeToken<Map<Position, Position>>() {}.getType();
+        //Type fooTypeMap = new TypeToken<Map<Position, Position>>() {}.getType();
         Type fooType = new TypeToken<Graph<OperatorDeployment>>() {}.getType();
 
         String output = writeGson.toJson(g, fooType);
