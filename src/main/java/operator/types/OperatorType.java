@@ -35,7 +35,7 @@ import javax.xml.crypto.Data;
  *  exactPosition (dovrebbe diventare una mappa) => sono i socket lato processo quando si fa una connessione
  */
 public abstract class OperatorType implements Serializable {
-
+	List<DataKey> messagesRecovered;
 	final int size;
 	final int slide;
 	//this list maps what socket i want to create considering the port into what position i want it to communicate
@@ -156,22 +156,24 @@ public abstract class OperatorType implements Serializable {
 		 */
 
 		// this condition is a while true loop
-		Map<String, List<DataKey>> currentMsg = new HashMap<>(); // mappa
-																	// contenente
-																	// i
-																	// messaggi
-																	// da
-																	// processare
-
+		// mappa contenente i messaggi da processare
+		Map<String, List<DataKey>> currentMsg = new HashMap<>();
 		while (Math.random() < 10) {
 			// Put (and remove) at maximum this.size elements into currentMsg
-
-			List<String> changedKeys = new LinkedList<>(); // id dei messaggi
-															// nuovi
+			// id dei messaggi nuovi
+			List<String> changedKeys = new LinkedList<>();
 
 			synchronized (sourceMsgQueue) {
-				while (this.sourceMsgQueue.size() == 0) // se la mappa condivisa
-														// è vuota aspetta
+				// se la mappa condivisa è vuota aspetta
+
+				if(!messagesRecovered.isEmpty())
+				{
+					for (DataKey dataKey : messagesRecovered) {
+						addToMessageQueue(dataKey);
+					}
+				}
+
+				while (this.sourceMsgQueue.size() == 0)
 				{
 					try {
 						sourceMsgQueue.wait();
@@ -333,6 +335,8 @@ public abstract class OperatorType implements Serializable {
 	 * MainSupervisor
 	 */
 	public void deploy() {
+		//getLastWindowProcessed
+		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAll();
 		recoverySetup();
 		this.sourceMsgQueue = new ConcurrentHashMap<>();
 		// this.sourceMsgKeys = Collections.newSetFromMap(new
