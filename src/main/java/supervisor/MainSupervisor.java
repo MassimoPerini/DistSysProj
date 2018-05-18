@@ -32,12 +32,3 @@ public class MainSupervisor {
         executorService.submit(graphDeployer);
     }
 }
-
-class AA{
-    public void s()
-    {
-        Logger logger = LogManager.getLogger();
-        logger.info("Main Supervisor Lanciato");
-
-    }
-}
