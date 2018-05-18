@@ -408,7 +408,7 @@ public abstract class OperatorType implements Serializable {
 			// Right now they're waiting for datas
 			operatorOutputQueue.start();
 		}
-
+		resendUnackedMessages();
 		// If source == null it means this is the first node of the graph, and
 		// needs to read datas from a file
 		// A possible modification could be having an operator spawned
@@ -423,7 +423,6 @@ public abstract class OperatorType implements Serializable {
 			// Deploy input from socket. I create a new ServerSocket
 			try {
 				logger.debug("Inside second operator");
-
 				ServerSocket serverSocket = new ServerSocket(source.getPort());
 				serverSocket.setReuseAddress(true);
 				executorService.submit(this::execute);
@@ -443,9 +442,18 @@ public abstract class OperatorType implements Serializable {
 				e.printStackTrace();
 			}
 		}
-
 	}
-
+	
+	/**
+	 * Load from file all the messages previously sent and not fully acked, and resend them.
+	 */
+	public void resendUnackedMessages()
+	{
+		List<DataKey> notAcked=recoveryManagerForMessagesSentAndNotAcknowledged.getAllOrEmptyList();
+		notAcked.forEach(msg->sendMessage(msg));
+	}
+	
+	
 	public void addToMessageQueue(DataKey messageData) {
 		// this.sourceMsgQueue.put(messageData.getOriginalKey(), messageData);
 		// this.sourceMsgKeys.add(messageData.getOriginalKey());

@@ -220,7 +220,7 @@ public class RecoveryManager {
      * Raturn the content of the file or an empty list
      * @return
      */
-    private List<DataKey> getAllOrEmptyList()
+    public List<DataKey> getAllOrEmptyList()
     {
         List<DataKey> toRet=getAll();
         return toRet==null?new ArrayList<>():toRet;
