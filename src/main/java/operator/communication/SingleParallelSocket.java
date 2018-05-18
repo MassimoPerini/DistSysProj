@@ -96,10 +96,8 @@ public class SingleParallelSocket {
                             + "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
                 }
 
-<<<<<<< HEAD
                 logger.error(e.getStackTrace());
-=======
->>>>>>> a54f661707840ab4dd218a0d3b66f45ca511ada5
+
             }
         }
     }

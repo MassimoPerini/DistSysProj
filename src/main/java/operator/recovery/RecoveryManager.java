@@ -248,5 +248,21 @@ public class RecoveryManager {
         currentlyInFile.removeAll(toRemove);
         store(currentlyInFile);
     }
+    
+    public List<DataKey> getByKey(DataKey key)
+    {
+    	List<DataKey> ret=getAllOrEmptyList();
+    	return ret.stream().filter(p->p.getOriginalKey().equals(key.getOriginalKey())).collect(Collectors.toList());
+    }
+    
+    /**
+     * Check if a message with same key and bigger sequence number exists
+     * @param messageData
+     * @return
+     */
+	public boolean isDuplicated(DataKey messageData) 
+	{
+		return getByKey(messageData).stream().anyMatch(m->m.getAggregator().getSequenceNumber()>=messageData.getAggregator().getSequenceNumber());
+	}
 }
 

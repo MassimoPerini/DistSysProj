@@ -446,7 +446,15 @@ public abstract class OperatorType implements Serializable {
 	public void resendUnackedMessages()
 	{
 		List<DataKey> notAcked=recoveryManagerForMessagesSentAndNotAcknowledged.getAllOrEmptyList();
-		notAcked.forEach(msg->sendMessage(msg));
+		Set<String> differentKeys=notAcked.stream().map(ms->ms.getOriginalKey()).distinct().collect(Collectors.toSet());
+		for(String string:differentKeys)
+		{
+			List<DataKey> current=notAcked.stream().filter(msg->msg.getOriginalKey().equals(string))
+					.sorted((m1,m2)->m1.getAggregator().getSequenceNumber()-m2.getAggregator().getSequenceNumber())
+					.collect(Collectors.toList());
+			for(DataKey msg:current)
+				sendMessage(msg);
+		}
 	}
 	
 	
@@ -465,7 +473,13 @@ public abstract class OperatorType implements Serializable {
 			System.exit(-2);
 		}
 		Debug.setMessageSent(Debug.getMessageReceived()+1);
-
+		if(lastMessageBySenderRecoveryManager.isDuplicated(messageData))
+		{
+				//dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
+			dataSenders.get(messageData.getAggregator().getNode()).sendAck(messageData);
+			return;
+		}
+				
 		synchronized (sourceMsgQueue) {
 			if (this.sourceMsgQueue.containsKey(messageData.getOriginalKey())) {
 				this.sourceMsgQueue.get(messageData.getOriginalKey()).add(messageData);
