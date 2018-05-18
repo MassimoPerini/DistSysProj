@@ -88,10 +88,9 @@ public class RecoveryManager {
 
     /**
      * This method draws a value from a file and returns it. It also overwrites the file with the new list.
-     * @param fileName is the name of the File that will be used for the path
      * @return the value drawn from the list.
      */
-    public  DataKey drawDataFromFileList(String fileName){
+    public  DataKey drawDataFromFileList(){
         DataKey value = null;
 
             Type type = new TypeToken<List<DataKey>>() {}.getType();
