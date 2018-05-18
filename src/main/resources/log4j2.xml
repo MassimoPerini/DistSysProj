@@ -16,7 +16,7 @@
     <RollingFile name="RollingFile" fileName="${log-path}/${ctx:logFileName}.log"
                  filePattern="${log-path}/${ctx:logFileName}-%d{yyyy-MM-dd}-%i.log" >
         <PatternLayout>
-            <pattern>%d{dd/MMM/yyyy HH:mm:ss,SSS}- %c{1}: %m%n</pattern>
+            <pattern>%d{dd/MMM/yyyy HH:mm:ss,SSS}- %c{1} %m %l: %m%n</pattern>
         </PatternLayout>
         <Policies>
             <OnStartupTriggeringPolicy />
@@ -33,7 +33,7 @@
 
 </Appenders>
 <Loggers>
-    <Root level="debug" additivity="false">
+    <Root level="debug" additivity="false" includeLocation="true">
         <AppenderRef ref="RoutingAppender"/>
     </Root>
 </Loggers>

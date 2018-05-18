@@ -67,6 +67,7 @@ public class InputFromSocket implements OperatorInputQueue{
 				operatorType.addToMessageQueue(messageData);
 				logger.debug("Received "+ messageData);
 
+
 			} catch (IOException e) {
 				Debug.printError(e);
 			} catch (ClassNotFoundException e) {

@@ -1,11 +1,14 @@
 package utils;
 
 import com.google.gson.GsonBuilder;
+import supervisor.Position;
 
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,7 +22,38 @@ public class Debug {
 
     private static UUID uuid;
 
-        /**
+    /**
+     * positions where sender crashes
+     */
+    private static List<Position> crashSendPosition = new LinkedList<>();
+    /**
+     * N message sent before crash
+     */
+    private static List<Integer> crashSendNMessage = new LinkedList<>();
+
+
+    /**
+     * positions where receive crashes
+     */
+    private static List<Position> crashRecPosition = new LinkedList<>();
+    /**
+     * N message receive before crash
+     */
+    private static List<Integer> crashRecNMessage = new LinkedList<>();
+
+    private static int messageSent = 0;
+
+    private static int messageReceived = 0;
+
+    public static int getMessageSent() {
+        return messageSent;
+    }
+
+    public static void setMessageSent(int messageSent) {
+        Debug.messageSent = messageSent;
+    }
+
+    /**
          * Nothing is printed
          */
         public static final int LEVEL_NOTHING = 0;
@@ -267,4 +301,45 @@ public class Debug {
     public static void setUuid(UUID uuid) {
         Debug.uuid = uuid;
     }
+
+    public static List<Position> getCrashSendPosition() {
+        return crashSendPosition;
+    }
+
+    public static void setCrashSendPosition(List<Position> crashSendPosition) {
+        Debug.crashSendPosition = crashSendPosition;
+    }
+
+    public static List<Integer> getCrashSendNMessage() {
+        return crashSendNMessage;
+    }
+
+    public static void setCrashSendNMessage(List<Integer> crashSendNMessage) {
+        Debug.crashSendNMessage = crashSendNMessage;
+    }
+
+    public static List<Position> getCrashRecPosition() {
+        return crashRecPosition;
+    }
+
+    public static void setCrashRecPosition(List<Position> crashRecPosition) {
+        Debug.crashRecPosition = crashRecPosition;
+    }
+
+    public static List<Integer> getCrashRecNMessage() {
+        return crashRecNMessage;
+    }
+
+    public static void setCrashRecNMessage(List<Integer> crashRecNMessage) {
+        Debug.crashRecNMessage = crashRecNMessage;
+    }
+
+    public static int getMessageReceived() {
+        return messageReceived;
+    }
+
+    public static void setMessageReceived(int messageReceived) {
+        Debug.messageReceived = messageReceived;
+    }
+
 }

@@ -251,7 +251,7 @@ public abstract class OperatorType implements Serializable {
 
 				}
 			}
-			logger.debug("end computation");
+			logger.debug("end of a aggregation");
 
 			// send
 
@@ -370,7 +370,11 @@ public abstract class OperatorType implements Serializable {
 							logger.debug(currentPointingPosition.toString());
 							socket.bind(new InetSocketAddress(currentPointingPosition.getAddress(),
                                     currentPointingPosition.getPort()));
+							socket.setReuseAddress(true);
+
 							socket.connect(new InetSocketAddress(position.getAddress(), position.getPort()));
+
+
 
 							sockets.add(socket);
 							logger.error(socket.toString());
@@ -440,6 +444,17 @@ public abstract class OperatorType implements Serializable {
 		// this.sourceMsgKeys.add(messageData.getOriginalKey());
 		// this.sourceMsgKeys.put(messageData.getOriginalKey());
 		// this.sourceMsgQueue.add(messageData);
+
+
+		if (Debug.getCrashRecPosition().contains(this.source) && Debug.getCrashRecNMessage().contains(Debug.getMessageReceived()))
+		{
+			Logger logger = LogManager.getLogger();
+			//ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+			logger.info("Crashing on purpose....");
+			System.exit(-2);
+		}
+		Debug.setMessageSent(Debug.getMessageReceived()+1);
+
 		synchronized (sourceMsgQueue) {
 			if (this.sourceMsgQueue.containsKey(messageData.getOriginalKey())) {
 				this.sourceMsgQueue.get(messageData.getOriginalKey()).add(messageData);
@@ -456,6 +471,13 @@ public abstract class OperatorType implements Serializable {
 	private void sendMessage(DataKey messageData) {
 		Logger logger = LogManager.getLogger();
 		ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+
+		if (Debug.getCrashSendPosition().contains(this.source) && Debug.getCrashSendNMessage().contains(Debug.getMessageSent()))
+		{
+			logger.info("Crashing on purpose....");
+			System.exit(-2);
+		}
+		Debug.setMessageSent(Debug.getMessageSent()+1);
 
 		for (OperatorOutputQueue operatorOutputQueue : destination.keySet()) {
 			logger.trace(destination.toString());
