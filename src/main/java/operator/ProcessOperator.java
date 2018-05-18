@@ -31,7 +31,7 @@ public class ProcessOperator {
         logger.debug("Processo lanciato!!! " + args[0]);
 
         Debug.getCrashSendPosition().add(new Position("127.0.0.1", 11340));
-        Debug.getCrashSendNMessage().add(3);
+        Debug.getCrashSendNMessage().add(2);
 
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(OperatorType.class, "type").registerSubtype(Sum.class)
                 .registerSubtype(Min.class).registerSubtype(Avg.class).registerSubtype(Max.class);

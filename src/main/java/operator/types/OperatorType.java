@@ -366,6 +366,7 @@ public abstract class OperatorType implements Serializable {
 							 */
 
 							Socket socket = new Socket();
+							socket.setReuseAddress(true);
 							Position currentPointingPosition = this.exactPosition.get(count);
 							logger.debug(currentPointingPosition.toString());
 							socket.bind(new InetSocketAddress(currentPointingPosition.getAddress(),
@@ -373,7 +374,7 @@ public abstract class OperatorType implements Serializable {
 							socket.setReuseAddress(true);
 
 							socket.connect(new InetSocketAddress(position.getAddress(), position.getPort()));
-
+							socket.setReuseAddress(true);
 
 
 							sockets.add(socket);
@@ -420,11 +421,13 @@ public abstract class OperatorType implements Serializable {
 				logger.debug("Inside second operator");
 
 				ServerSocket serverSocket = new ServerSocket(source.getPort());
+				serverSocket.setReuseAddress(true);
 				executorService.submit(this::execute);
 				// i listen for all DataKey coming from the previous node.
 				while (true) {
 					logger.debug("Start accepting new incoming connections!");
 					Socket socket = serverSocket.accept();
+					socket.setReuseAddress(true);
 					logger.debug("A new socket input!");
 					InputFromSocket receiver = new InputFromSocket(socket, source);
 					dataSenders.put(receiver.getOtherSidePosition(), receiver);
@@ -472,12 +475,14 @@ public abstract class OperatorType implements Serializable {
 		Logger logger = LogManager.getLogger();
 		ThreadContext.put("logFileName", "operator"+Debug.getUuid());
 
+		Debug.setMessageSent(Debug.getMessageSent()+1);
+		logger.info("COUNTER: "+Debug.getMessageSent());
+
 		if (Debug.getCrashSendPosition().contains(this.source) && Debug.getCrashSendNMessage().contains(Debug.getMessageSent()))
 		{
 			logger.info("Crashing on purpose....");
 			System.exit(-2);
 		}
-		Debug.setMessageSent(Debug.getMessageSent()+1);
 
 		for (OperatorOutputQueue operatorOutputQueue : destination.keySet()) {
 			logger.trace(destination.toString());

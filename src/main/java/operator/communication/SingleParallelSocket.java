@@ -89,8 +89,13 @@ public class SingleParallelSocket {
                  dataFeeder.manageAck(receivedAck.getOriginalKey(),receivedAck.getAggregator(),this);// todo fix here
             } catch (IOException | ClassNotFoundException e)
             {
+                StackTraceElement[] elements = e.getStackTrace();
+                for (int i = 1; i < elements.length; i++) {
+                    StackTraceElement s = elements[i];
+                    logger.error("\tat " + s.getClassName() + "." + s.getMethodName()
+                            + "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
+                }
 
-                logger.error(e);
             }
         }
     }

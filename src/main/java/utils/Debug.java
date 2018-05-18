@@ -45,11 +45,11 @@ public class Debug {
 
     private static int messageReceived = 0;
 
-    public static int getMessageSent() {
+    public static synchronized int getMessageSent() {
         return messageSent;
     }
 
-    public static void setMessageSent(int messageSent) {
+    public static synchronized void setMessageSent(int messageSent) {
         Debug.messageSent = messageSent;
     }
 
