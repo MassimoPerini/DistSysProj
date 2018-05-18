@@ -183,7 +183,7 @@ public class RecoveryManager {
     /**
      * Return the list of all elements, or null if empty
      */
-    private synchronized List<DataKey> getAll()
+    public synchronized List<DataKey> getAll()
     {
         String s;
         StringBuilder toConvertFromJSON = new StringBuilder();
@@ -221,7 +221,7 @@ public class RecoveryManager {
      * Raturn the content of the file or an empty list
      * @return
      */
-    private List<DataKey> getAllOrEmptyList()
+    public List<DataKey> getAllOrEmptyList()
     {
         List<DataKey> toRet=getAll();
         return toRet==null?new ArrayList<>():toRet;

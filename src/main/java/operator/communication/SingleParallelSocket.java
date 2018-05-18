@@ -90,7 +90,7 @@ public class SingleParallelSocket {
             } catch (IOException | ClassNotFoundException e)
             {
 
-                logger.error(e);
+                logger.error(e.getStackTrace());
             }
         }
     }
