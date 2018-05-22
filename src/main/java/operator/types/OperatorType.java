@@ -60,6 +60,9 @@ public abstract class OperatorType implements Serializable {
 	 */
 	private @NotNull List<Position> portToUseToConnectToPosition;
 	private @NotNull List<Integer> portToUseToConnectToPositionPort;
+
+	private boolean isResendingUnackedMessage;
+	private Object isResendingUnackedMessageLock;
 	/**
 	 * messageAddressees is the list of the next nodes It is used to initialize
 	 * the operator type.
@@ -67,7 +70,6 @@ public abstract class OperatorType implements Serializable {
 	private final @NotNull List<List<Position>> messageAddressees;
 
 	private transient ExecutorService executorService;
-	private final Object stoppedByCrash = new Object();
 
 	// 'String' is the address of the data sender
 	// the List is the dataKey structure that the sender sends
@@ -77,7 +79,7 @@ public abstract class OperatorType implements Serializable {
 	// private transient Set<String> sourceMsgKeys;
 
 	// list of fallen forward nodes
-	private Set<SingleParallelSocket> outputToSocketFallen;
+	//private Set<SingleParallelSocket> outputToSocketFallen;
 
 	/**
 	 * The relation between the position of nodes which send me data and their
@@ -117,8 +119,9 @@ public abstract class OperatorType implements Serializable {
 		this.slide = slide;
 		this.exactPosition = exactPosition;
 		this.source = socket;
+		this.isResendingUnackedMessage = Boolean.FALSE;
 		dataSenders = new HashMap<>();
-		outputToSocketFallen = new HashSet<>();
+		//outputToSocketFallen = new HashSet<>();
 		// this.portToUseToConnectToPosition = new HashMap<>();
 		// this.destination = new HashMap<>();
 		recoverySetup();
@@ -179,6 +182,19 @@ public abstract class OperatorType implements Serializable {
 			// Put (and remove) at maximum this.size elements into currentMsg
 			// id dei messaggi nuovi
 			List<String> changedKeys = new LinkedList<>();
+
+			synchronized (isResendingUnackedMessageLock)
+			{
+				logger.debug(("Checking unacked messages"));
+
+				if(isResendingUnackedMessage) {
+					logger.debug(("Sending unacked messages"));
+					isResendingUnackedMessage = false;
+					this.resendUnackedMessages();
+
+				}
+			}
+
 
 			synchronized (sourceMsgQueue) {
 				// se la mappa condivisa è vuota aspetta
@@ -257,8 +273,11 @@ public abstract class OperatorType implements Serializable {
 							.collect(Collectors.toList()));
 
 					slideWindow(data);
-
-					executorService.submit(() -> sendMessage(messageData));
+					executorService.submit(() -> {
+                        Debug.increaseMessageSent(1);
+                        sendMessage(messageData);
+                    });
+					//executorService.submit(() -> sendMessage(messageData));
 
 				}
 			}
@@ -347,6 +366,7 @@ public abstract class OperatorType implements Serializable {
 		//getLastWindowProcessed
 		recoverySetup();
 
+		this.isResendingUnackedMessageLock = new Object();
 		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAll();
 		if (this.messagesRecovered == null) {
 			this.messagesRecovered = new LinkedList<>();
@@ -405,6 +425,11 @@ public abstract class OperatorType implements Serializable {
 							// todo: check here - ogni tanto mi compariva questo
 							// errore
 							logger.error("I can't establish connection to the other node input! (OperatorType)");
+							try {
+								Thread.sleep(5000);
+							} catch (InterruptedException e1) {
+								Debug.printDebug(e1);
+							}
 							keepLooping = true;
 						}
 					} while (keepLooping);
@@ -422,6 +447,9 @@ public abstract class OperatorType implements Serializable {
 			operatorOutputQueue.start();
 		}
 		resendUnackedMessages();
+
+		isResendingUnackedMessage = false;
+
 		// If source == null it means this is the first node of the graph, and
 		// needs to read datas from a file
 		// A possible modification could be having an operator spawned
@@ -516,7 +544,6 @@ public abstract class OperatorType implements Serializable {
 		Logger logger = LogManager.getLogger();
 		ThreadContext.put("logFileName", "operator"+Debug.getUuid());
 
-		Debug.increaseMessageSent(1);
 		logger.info("COUNTER: "+Debug.getMessageSent());
 
 		if (Debug.getCrashSendPosition().contains(this.source) && Debug.getCrashSendNMessage().contains(Debug.getMessageSent()))
@@ -546,16 +573,27 @@ public abstract class OperatorType implements Serializable {
 		return this.slide;
 	}
 
-	public void stopOutput(SingleParallelSocket elem) {
+	public void canResendUnackedMessage()
+	{
+		/*
+		synchronized (isResendingUnackedMessageLock)
+		{
+
+			Debug.printVerbose("inside synch to update boolean");
+			isResendingUnackedMessage = true;
+		}
+		*/
+		executorService.submit(() -> resendUnackedMessages());
+	}
+
+	/*public void stopOutput(SingleParallelSocket elem) {
 		this.outputToSocketFallen.add(elem);
 	}
 
 	public void restartOutput(SingleParallelSocket elem) {
 		this.outputToSocketFallen.remove(elem);
-		synchronized (stoppedByCrash) {
-			stoppedByCrash.notify();
-		}
-	}
+		this.resendUnackedMessages();
+	}*/
 
 	/**
 	 * Update the list of nodes that have received a certain message. If last,

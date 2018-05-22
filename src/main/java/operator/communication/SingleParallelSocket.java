@@ -33,7 +33,7 @@ public class SingleParallelSocket {
 
     public SingleParallelSocket(Socket socket, OperatorType operatorType) {
     	this.socket = socket;
-        this.addressToReconnectWith = socket.getInetAddress().toString();
+        this.addressToReconnectWith = socket.getInetAddress().getHostAddress();
         this.portToReconnectWith = socket.getPort();
 
         try {
@@ -54,19 +54,20 @@ public class SingleParallelSocket {
         Logger logger = LogManager.getLogger();
         logger.error(e);
         this.finish();
-        dataFeeder.stopOutput(this); //todo fix here
+        //dataFeeder.stopOutput(this);
         Boolean tryToReconnect = true;
-        logger.error("Trying the reconnection");
+        logger.error("Trying the reconnection to "+this.addressToReconnectWith);
         while(tryToReconnect){
             try {
                 this.socket = new Socket(this.addressToReconnectWith, this.portToReconnectWith);
                 this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
                 this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
                 tryToReconnect = false;
-                this.dataFeeder.restartOutput(this); //todo fix here
+                //this.dataFeeder.restartOutput(this); //todo fix here
                 isAlive = true;
                 logger.error("RE-CONNECTED");
-
+                dataFeeder.canResendUnackedMessage();
+                logger.error("Updated data feeder");
             } catch (IOException e1) {
                 logger.error(e1);
                 logger.error("Waiting for the node to come back alive");
@@ -77,6 +78,9 @@ public class SingleParallelSocket {
                 } catch (InterruptedException e2) {
                     logger.error(e2);
                 }
+            }
+            catch (Exception e2){
+                logger.error("general exception", e2);
             }
         }
     }

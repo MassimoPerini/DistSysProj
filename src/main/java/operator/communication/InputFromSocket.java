@@ -71,7 +71,6 @@ public class InputFromSocket implements OperatorInputQueue{
 			} catch (IOException e) {
 				Debug.printError("InputFromSocket IOException"+e);
 				this.finish();
-
 				return;
 
 			} catch (ClassNotFoundException e) {
