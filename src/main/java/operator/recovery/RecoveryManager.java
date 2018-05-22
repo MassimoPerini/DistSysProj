@@ -7,6 +7,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import supervisor.Position;
 import utils.Debug;
 
@@ -182,7 +183,7 @@ public class RecoveryManager {
     /**
      * Return the list of all elements, or null if empty
      */
-    public synchronized List<DataKey> getAll()
+    public synchronized @Nullable List<DataKey> getAll()
     {
         String s;
         StringBuilder toConvertFromJSON = new StringBuilder();

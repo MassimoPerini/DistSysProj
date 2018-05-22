@@ -342,4 +342,9 @@ public class Debug {
         Debug.messageReceived = messageReceived;
     }
 
+    public static synchronized void increaseMessageSent(int increase)
+    {
+        messageSent+=increase;
+    }
+
 }

@@ -159,12 +159,21 @@ public abstract class OperatorType implements Serializable {
 		// mappa contenente i messaggi da processare
 		Map<String, List<DataKey>> currentMsg = new HashMap<>();
 
+		Logger logger = LogManager.getLogger();
+
+
 		if(!messagesRecovered.isEmpty())
 		{
+			logger.debug("recovery file is NOT empty");
+
 			for (DataKey dataKey : messagesRecovered) {
+				logger.debug("adding data....");
 				addToMessageQueue(dataKey);
 			}
 		}
+		else
+			logger.debug("recovery file IS empty");
+
 
 		while (Math.random() < 10) {
 			// Put (and remove) at maximum this.size elements into currentMsg
@@ -180,7 +189,6 @@ public abstract class OperatorType implements Serializable {
 					try {
 						sourceMsgQueue.wait();
 					} catch (InterruptedException e) {
-						Logger logger = LogManager.getLogger();
 						logger.error(e);
 					}
 				}
@@ -204,7 +212,6 @@ public abstract class OperatorType implements Serializable {
 
 			// ---- ended copy, now aggregates
 			// Map<String, List<DataKey>> results = new HashMap<>();
-			Logger logger = LogManager.getLogger();
 			ThreadContext.put("logFileName", "operator"+Debug.getUuid());
 
 
@@ -341,6 +348,9 @@ public abstract class OperatorType implements Serializable {
 		recoverySetup();
 
 		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAll();
+		if (this.messagesRecovered == null) {
+			this.messagesRecovered = new LinkedList<>();
+		}
 		this.sourceMsgQueue = new ConcurrentHashMap<>();
 		// this.sourceMsgKeys = Collections.newSetFromMap(new
 		// ConcurrentHashMap<String, Boolean>());
@@ -480,7 +490,8 @@ public abstract class OperatorType implements Serializable {
 			logger.info("Crashing on purpose....");
 			System.exit(-2);
 		}
-		Debug.setMessageSent(Debug.getMessageReceived()+1);
+		Debug.setMessageReceived(Debug.getMessageReceived()+1);
+
 		if(lastMessageBySenderRecoveryManager.isDuplicated(messageData) && source.getPort() > 0)
 		{
 				//dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
@@ -505,7 +516,7 @@ public abstract class OperatorType implements Serializable {
 		Logger logger = LogManager.getLogger();
 		ThreadContext.put("logFileName", "operator"+Debug.getUuid());
 
-		Debug.setMessageSent(Debug.getMessageSent()+1);
+		Debug.increaseMessageSent(1);
 		logger.info("COUNTER: "+Debug.getMessageSent());
 
 		if (Debug.getCrashSendPosition().contains(this.source) && Debug.getCrashSendNMessage().contains(Debug.getMessageSent()))
