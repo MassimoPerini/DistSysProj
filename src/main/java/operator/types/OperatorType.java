@@ -61,8 +61,8 @@ public abstract class OperatorType implements Serializable {
 	private @NotNull List<Position> portToUseToConnectToPosition;
 	private @NotNull List<Integer> portToUseToConnectToPositionPort;
 
-	private boolean isResendingUnackedMessage;
-	private Object isResendingUnackedMessageLock;
+	//private boolean isResendingUnackedMessage;
+	//private Object isResendingUnackedMessageLock;
 	/**
 	 * messageAddressees is the list of the next nodes It is used to initialize
 	 * the operator type.
@@ -119,7 +119,7 @@ public abstract class OperatorType implements Serializable {
 		this.slide = slide;
 		this.exactPosition = exactPosition;
 		this.source = socket;
-		this.isResendingUnackedMessage = Boolean.FALSE;
+		//this.isResendingUnackedMessage = Boolean.FALSE;
 		dataSenders = new HashMap<>();
 		//outputToSocketFallen = new HashSet<>();
 		// this.portToUseToConnectToPosition = new HashMap<>();
@@ -183,7 +183,7 @@ public abstract class OperatorType implements Serializable {
 			// id dei messaggi nuovi
 			List<String> changedKeys = new LinkedList<>();
 
-			synchronized (isResendingUnackedMessageLock)
+			/*synchronized (isResendingUnackedMessageLock)
 			{
 				logger.debug(("Checking unacked messages"));
 
@@ -193,7 +193,7 @@ public abstract class OperatorType implements Serializable {
 					this.resendUnackedMessages();
 
 				}
-			}
+			}*/
 
 
 			synchronized (sourceMsgQueue) {
@@ -366,7 +366,7 @@ public abstract class OperatorType implements Serializable {
 		//getLastWindowProcessed
 		recoverySetup();
 
-		this.isResendingUnackedMessageLock = new Object();
+		//this.isResendingUnackedMessageLock = new Object();
 		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAll();
 		if (this.messagesRecovered == null) {
 			this.messagesRecovered = new LinkedList<>();
@@ -448,7 +448,7 @@ public abstract class OperatorType implements Serializable {
 		}
 		resendUnackedMessages();
 
-		isResendingUnackedMessage = false;
+		//isResendingUnackedMessage = false;
 
 		// If source == null it means this is the first node of the graph, and
 		// needs to read datas from a file
@@ -583,7 +583,7 @@ public abstract class OperatorType implements Serializable {
 			isResendingUnackedMessage = true;
 		}
 		*/
-		executorService.submit(() -> resendUnackedMessages());
+		executorService.submit(this::resendUnackedMessages);
 	}
 
 	/*public void stopOutput(SingleParallelSocket elem) {
