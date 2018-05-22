@@ -33,7 +33,7 @@
 
 </Appenders>
 <Loggers>
-    <Root level="debug" additivity="false" includeLocation="true">
+    <Root level="trace" additivity="false" includeLocation="true">
         <AppenderRef ref="RoutingAppender"/>
     </Root>
 </Loggers>

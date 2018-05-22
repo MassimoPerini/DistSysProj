@@ -51,7 +51,8 @@ public class InputFromFile implements OperatorInputQueue{
         }
         catch (Exception e)
         {
-            Debug.printError(e);
+            e.printStackTrace();
+            Debug.printError("File reading error"+e);
         }
     }
 

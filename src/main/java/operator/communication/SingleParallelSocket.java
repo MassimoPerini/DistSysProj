@@ -28,6 +28,8 @@ public class SingleParallelSocket {
     private final int portToReconnectWith;
     private final OperatorType dataFeeder;
 
+    private boolean isAlive;
+
 
     public SingleParallelSocket(Socket socket, OperatorType operatorType) {
     	this.socket = socket;
@@ -37,42 +39,55 @@ public class SingleParallelSocket {
         try {
             this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
             this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
+            isAlive = true;
 
         } catch (IOException e) {
             Logger logger = LogManager.getLogger();
             logger.error(e);
+            isAlive = false;
         }
         this.dataFeeder = operatorType;
+    }
+
+    private void reconnect(Exception e)
+    {
+        Logger logger = LogManager.getLogger();
+        logger.error(e);
+        this.finish();
+        dataFeeder.stopOutput(this); //todo fix here
+        Boolean tryToReconnect = true;
+        logger.error("Trying the reconnection");
+        while(tryToReconnect){
+            try {
+                this.socket = new Socket(this.addressToReconnectWith, this.portToReconnectWith);
+                this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
+                this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
+                tryToReconnect = false;
+                this.dataFeeder.restartOutput(this); //todo fix here
+                isAlive = true;
+                logger.error("RE-CONNECTED");
+
+            } catch (IOException e1) {
+                logger.error(e1);
+                logger.error("Waiting for the node to come back alive");
+                isAlive = false;
+                //todo check if it's okays
+                try {
+                    Thread.sleep((long) (200));
+                } catch (InterruptedException e2) {
+                    logger.error(e2);
+                }
+            }
+        }
     }
 
     public void send(DataKey messageData) {
         try {
             this.socketOut.writeObject(messageData);
             this.socketOut.flush();
+            isAlive = true;
         } catch (IOException e) {
-            Logger logger = LogManager.getLogger();
-            logger.error(e);
-            Debug.printDebug(e);
-            dataFeeder.stopOutput(this); //todo fix here
-            Boolean tryToReconnect = true;
-            while(tryToReconnect){
-                try {
-                    this.socket = new Socket(this.addressToReconnectWith, this.portToReconnectWith);
-                    this.socketOut = (new ObjectOutputStream(this.socket.getOutputStream()));
-                    this.socketIn = (new ObjectInputStream(this.socket.getInputStream()));
-                    tryToReconnect = false;
-                    this.dataFeeder.restartOutput(this); //todo fix here
-                } catch (IOException e1) {
-                    logger.error(e1);
-                    logger.error("Waiting for the node to come back alive");
-                    //todo check if it's okays
-                    try {
-                        Thread.sleep((long) (200));
-                    } catch (InterruptedException e2) {
-                        logger.error(e2);
-                    }
-                }
-            }
+            reconnect(e);
         }
     }
 
@@ -87,17 +102,10 @@ public class SingleParallelSocket {
                 DataKey receivedAck=(DataKey)this.socketIn.readObject();
                 logger.trace("Received an ack: "+receivedAck);
                  dataFeeder.manageAck(receivedAck.getOriginalKey(),receivedAck.getAggregator(),this);// todo fix here
+                isAlive = true;
             } catch (IOException | ClassNotFoundException e)
             {
-                StackTraceElement[] elements = e.getStackTrace();
-                for (int i = 1; i < elements.length; i++) {
-                    StackTraceElement s = elements[i];
-                    logger.error("\tat " + s.getClassName() + "." + s.getMethodName()
-                            + "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
-                }
-
-                logger.error(e.getStackTrace());
-
+                reconnect(e);
             }
         }
     }

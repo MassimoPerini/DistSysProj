@@ -97,7 +97,7 @@ public class DaemonSocket {
             }
         }
         catch (IOException e) {
-            Debug.printError(e);
+            Debug.printError("DaemonSocket IOExeption"+e);
         }
         catch (Exception e)
         {

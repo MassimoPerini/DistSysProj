@@ -69,7 +69,11 @@ public class InputFromSocket implements OperatorInputQueue{
 
 
 			} catch (IOException e) {
-				Debug.printError(e);
+				Debug.printError("InputFromSocket IOException"+e);
+				this.finish();
+				
+				return;
+
 			} catch (ClassNotFoundException e) {
 				Debug.printError(e);
 			}
@@ -95,10 +99,21 @@ public class InputFromSocket implements OperatorInputQueue{
 
 				logger.trace("Sending an ack ");
 			} catch (IOException e) {
-				Debug.printError(e);
+				Debug.printError("Sending an ack "+e);
 			} catch (InterruptedException e) {
 				Debug.printError(e);
 			}
+		}
+	}
+
+	private void finish()
+	{
+		try {
+			inputSocket.close();
+			socketIn.close();
+			socketOut.close();
+		} catch (IOException e) {
+			Debug.printError(e);
 		}
 	}
 

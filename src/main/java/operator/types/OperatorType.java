@@ -158,6 +158,14 @@ public abstract class OperatorType implements Serializable {
 		// this condition is a while true loop
 		// mappa contenente i messaggi da processare
 		Map<String, List<DataKey>> currentMsg = new HashMap<>();
+
+		if(!messagesRecovered.isEmpty())
+		{
+			for (DataKey dataKey : messagesRecovered) {
+				addToMessageQueue(dataKey);
+			}
+		}
+
 		while (Math.random() < 10) {
 			// Put (and remove) at maximum this.size elements into currentMsg
 			// id dei messaggi nuovi
@@ -166,12 +174,6 @@ public abstract class OperatorType implements Serializable {
 			synchronized (sourceMsgQueue) {
 				// se la mappa condivisa è vuota aspetta
 
-				if(!messagesRecovered.isEmpty())
-				{
-					for (DataKey dataKey : messagesRecovered) {
-						addToMessageQueue(dataKey);
-					}
-				}
 
 				while (this.sourceMsgQueue.size() == 0)
 				{
@@ -336,8 +338,9 @@ public abstract class OperatorType implements Serializable {
 	 */
 	public void deploy() {
 		//getLastWindowProcessed
-		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAll();
 		recoverySetup();
+
+		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAll();
 		this.sourceMsgQueue = new ConcurrentHashMap<>();
 		// this.sourceMsgKeys = Collections.newSetFromMap(new
 		// ConcurrentHashMap<String, Boolean>());
@@ -433,6 +436,7 @@ public abstract class OperatorType implements Serializable {
 					socket.setReuseAddress(true);
 					logger.debug("A new socket input!");
 					InputFromSocket receiver = new InputFromSocket(socket, source);
+					// rimuovere dalla mappa
 					dataSenders.put(receiver.getOtherSidePosition(), receiver);
 					logger.trace(dataSenders.toString());
 					executorService.submit(() -> receiver.startReceiving(this));
@@ -477,7 +481,7 @@ public abstract class OperatorType implements Serializable {
 			System.exit(-2);
 		}
 		Debug.setMessageSent(Debug.getMessageReceived()+1);
-		if(lastMessageBySenderRecoveryManager.isDuplicated(messageData))
+		if(lastMessageBySenderRecoveryManager.isDuplicated(messageData) && source.getPort() > 0)
 		{
 				//dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
 			dataSenders.get(messageData.getAggregator().getNode()).sendAck(messageData);
