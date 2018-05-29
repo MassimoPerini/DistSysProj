@@ -269,7 +269,7 @@ public abstract class OperatorType implements Serializable {
 					// 3- we tell the recovery manager the keys of the new
 					// arrived elements
 					updateLastMessagesReceivedBySender(messageData.getSources().stream()
-							.map(d -> new DataKey(messageData.getOriginalKey(), 0.0, d, new ArrayList<>()))
+							.map(d -> new DataKey(messageData.getOriginalKey(), messageData.getData(), d, new ArrayList<>()))
 							.collect(Collectors.toList()));
 
 					slideWindow(data);
@@ -319,7 +319,7 @@ public abstract class OperatorType implements Serializable {
 
 	/**
 	 * Acknowledge window size Delete window slide from memory
-	 * 
+	 *
 	 * @param data
 	 */
 	private void slideWindow(List<DataKey> data) {
@@ -337,7 +337,7 @@ public abstract class OperatorType implements Serializable {
 
 	/**
 	 * Modify the file containing the last message received from each socket
-	 * 
+	 *
 	 * @param sources
 	 */
 	private void updateLastMessagesReceivedBySender(@NotNull List<DataKey> sources) {
@@ -347,7 +347,7 @@ public abstract class OperatorType implements Serializable {
 	/**
 	 * Append the given window to the file containing the last processed one,
 	 * then delete the oldest value.
-	 * 
+	 *
 	 * @param messageData
 	 */
 	private void changeLastProcessedWindow(DataKey messageData) {
@@ -485,7 +485,7 @@ public abstract class OperatorType implements Serializable {
 			}
 		}
 	}
-	
+
 	/**
 	 * Load from file all the messages previously sent and not fully acked, and resend them.
 	 */
@@ -495,15 +495,19 @@ public abstract class OperatorType implements Serializable {
 		Set<String> differentKeys=notAcked.stream().map(ms->ms.getOriginalKey()).distinct().collect(Collectors.toSet());
 		for(String string:differentKeys)
 		{
-			List<DataKey> current=notAcked.stream().filter(msg->msg.getOriginalKey().equals(string))
-					.sorted((m1,m2)->m1.getAggregator().getSequenceNumber()-m2.getAggregator().getSequenceNumber())
-					.collect(Collectors.toList());
-			for(DataKey msg:current)
-				sendMessage(msg);
+			List<DataKey> current = reorderMessages(notAcked, string);
+			for(int i = 0; i< current.size(); i++)
+				sendMessage(current.get(i));
 		}
 	}
-	
-	
+
+	public static List<DataKey> reorderMessages(List<DataKey> notAcked, String originalKey) {
+		List<DataKey> current = notAcked.stream().filter(msg -> msg.getOriginalKey().equals(originalKey))
+				.sorted((m1, m2) -> +m1.getAggregator().getSequenceNumber() - m2.getAggregator().getSequenceNumber())
+				.collect(Collectors.toList());
+		return current;
+	}
+
 	public void addToMessageQueue(DataKey messageData) {
 		// this.sourceMsgQueue.put(messageData.getOriginalKey(), messageData);
 		// this.sourceMsgKeys.add(messageData.getOriginalKey());
@@ -526,7 +530,7 @@ public abstract class OperatorType implements Serializable {
 			dataSenders.get(messageData.getAggregator().getNode()).sendAck(messageData);
 			return;
 		}
-				
+
 		synchronized (sourceMsgQueue) {
 			if (this.sourceMsgQueue.containsKey(messageData.getOriginalKey())) {
 				this.sourceMsgQueue.get(messageData.getOriginalKey()).add(messageData);
@@ -598,7 +602,7 @@ public abstract class OperatorType implements Serializable {
 	/**
 	 * Update the list of nodes that have received a certain message. If last,
 	 * delete it from file
-	 * 
+	 *
 	 * @param receivedAck
 	 *            the message I sent before and that has now been acknowledged
 	 * @param outputToSocket

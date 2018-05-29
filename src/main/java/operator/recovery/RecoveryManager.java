@@ -15,6 +15,7 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -127,6 +128,13 @@ public class RecoveryManager {
      */
     public synchronized void store(List<DataKey> toStore)
     {
+        Debug.printError("Sto stampando sul file " +  destinationFile.toString() + "\n");
+        for(DataKey message:toStore)
+        {
+            Debug.printError(toStore + " ");
+        }
+        Debug.printError("\n");
+
         Type type = new TypeToken<List<DataKey>>() {}.getType();
         Logger logger = LogManager.getLogger();
         try{
@@ -174,7 +182,7 @@ public class RecoveryManager {
                 .filter(currentlyInFileOrNewer->current.stream()
                         .anyMatch(moreRecent->moreRecent.otherHasSameSenderButOlderSequenceNumber(currentlyInFileOrNewer)))
                 .collect(Collectors.toList());
-        Debug.printVerbose("Those should be eliminated"+toRemove);
+        Debug.printVerbose("Those should be eliminated because i'm the last message for each source"+toRemove);
         current.removeAll(toRemove);
         store(current);
     }
@@ -238,17 +246,56 @@ public class RecoveryManager {
     public void reactToAck(String originalKey,Key receivedAck, Position ackSenderPosition, Collection<Position> allAcksNeeded)
     {
         List<DataKey> currentlyInFile=getAllOrEmptyList();
-        currentlyInFile.stream()
+        /*currentlyInFile.stream()
         		.filter(msg->msg.getOriginalKey().equals(originalKey))
                 .filter(datakey->datakey.hasOlderOrEqualSequenceNumberThanOther(receivedAck))
                 .filter(correctMessage->!correctMessage.getSources().contains(ackSenderPosition))
                 .forEach(messageInNeedOfAck->messageInNeedOfAck.addSource(ackSenderPosition));
         List<DataKey> toRemove=currentlyInFile.stream().filter(datakey->datakey.getSources().size()==allAcksNeeded.size())
-                .collect(Collectors.toList());
-        currentlyInFile.removeAll(toRemove);
+                .collect(Collectors.toList());*/
+
+        filterAck(originalKey, receivedAck, ackSenderPosition,currentlyInFile);
+        currentlyInFile.removeAll(returnAckedMsgs(currentlyInFile, allAcksNeeded))
+;
         store(currentlyInFile);
     }
-    
+    public static void filterAck(String originalKey, Key receivedAck, Position ackSenderPosition,
+                                    List<DataKey> messagesToFilter){
+        List<DataKey> sameKey  = new LinkedList<>();
+
+        for(DataKey message: messagesToFilter)
+        {
+            //here we filter the message we just have to ack
+            if(message.getOriginalKey().equals(originalKey) && message.getAggregator().getSequenceNumber()<=
+                    receivedAck.getSequenceNumber()){
+                sameKey.add(message);
+            }
+        }
+
+        for(DataKey message:sameKey)
+        {
+            boolean foundSame = false;
+            for(Key pos:message.getSources()) {
+                if (pos.getNode().equals(receivedAck.getNode()))
+                    foundSame = true;
+            }
+            if(!foundSame)
+                message.addSource(ackSenderPosition);
+        }
+        return;
+    }
+
+    public static List<DataKey> returnAckedMsgs(List<DataKey> messages, Collection<Position> positions){
+        List<DataKey> toReturn = new LinkedList<>();
+        for(DataKey message:messages)
+        {
+            if(message.getSources().size() == positions.size()){
+                toReturn.add(message);
+            }
+        }
+        return toReturn;
+    }
+
     public List<DataKey> getByKey(DataKey key)
     {
     	List<DataKey> ret=getAllOrEmptyList();
