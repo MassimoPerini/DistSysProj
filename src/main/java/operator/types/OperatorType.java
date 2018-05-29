@@ -367,10 +367,8 @@ public abstract class OperatorType implements Serializable {
 		recoverySetup();
 
 		//this.isResendingUnackedMessageLock = new Object();
-		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAll();
-		if (this.messagesRecovered == null) {
-			this.messagesRecovered = new LinkedList<>();
-		}
+		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAllOrEmptyList();
+
 		this.sourceMsgQueue = new ConcurrentHashMap<>();
 		// this.sourceMsgKeys = Collections.newSetFromMap(new
 		// ConcurrentHashMap<String, Boolean>());

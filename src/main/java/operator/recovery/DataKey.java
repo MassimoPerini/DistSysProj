@@ -3,6 +3,8 @@ package operator.recovery;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -146,6 +148,12 @@ public class DataKey implements Serializable{
         this.aggregator.setSender(positionOfTheOtherSide);
     }
     
+    public void getAcked(Position acker)
+    {
+    	Set<Position> currentAckers=this.sources.stream().map(dk->dk.getNode()).collect(Collectors.toSet());
+    	currentAckers.add(acker);
+    	this.sources=currentAckers.stream().map(dk->new Key(dk, -42)).collect(Collectors.toList());
+    }
     
     public DataKey oldestInListWithSameOriginalKey(List<DataKey> all)
     {

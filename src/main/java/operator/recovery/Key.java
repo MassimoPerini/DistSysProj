@@ -18,16 +18,34 @@ public class Key implements Serializable{
 		this.sequenceNumber = sequenceNumber;
 	}
 	
-	
-	public boolean equals(Key key)
-	{
-		if(this.sequenceNumber!=key.sequenceNumber)
-			return false;
-		if(this.node!=null)
-			return this.node.equals(key.node);
-		else
-			return key.node==null;
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((node == null) ? 0 : node.hashCode());
+		result = prime * result + sequenceNumber;
+		return result;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Key other = (Key) obj;
+		if (node == null) {
+			if (other.node != null)
+				return false;
+		} else if (!node.equals(other.node))
+			return false;
+		if (sequenceNumber != other.sequenceNumber)
+			return false;
+		return true;
+	}
+	
 	
 	public String toString()
 	{

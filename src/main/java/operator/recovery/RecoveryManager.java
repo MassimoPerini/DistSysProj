@@ -274,13 +274,7 @@ public class RecoveryManager {
 
         for(DataKey message:sameKey)
         {
-            boolean foundSame = false;
-            for(Key pos:message.getSources()) {
-                if (pos.getNode().equals(receivedAck.getNode()))
-                    foundSame = true;
-            }
-            if(!foundSame)
-                message.addSource(ackSenderPosition);
+            message.getAcked(ackSenderPosition);
         }
         return;
     }
