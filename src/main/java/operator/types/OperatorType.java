@@ -1,5 +1,6 @@
 package operator.types;
 
+import java.awt.Container;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -177,8 +178,8 @@ public abstract class OperatorType implements Serializable {
 		else
 			logger.debug("recovery file IS empty");
 
-
-		while (Math.random() < 10) {
+int cont=0;
+		do{
 			// Put (and remove) at maximum this.size elements into currentMsg
 			// id dei messaggi nuovi
 			List<String> changedKeys = new LinkedList<>();
@@ -268,9 +269,8 @@ public abstract class OperatorType implements Serializable {
 
 					// 3- we tell the recovery manager the keys of the new
 					// arrived elements
-					updateLastMessagesReceivedBySender(messageData.getSources().stream()
-							.map(d -> new DataKey(messageData.getOriginalKey(), messageData.getData(), d, new ArrayList<>()))
-							.collect(Collectors.toList()));
+					
+					updateLastMessagesReceivedBySender(data);
 
 					slideWindow(data);
 					executorService.submit(() -> {
@@ -314,7 +314,8 @@ public abstract class OperatorType implements Serializable {
 			// we use this to allow precedent optimization
 			changedKeys.clear();
 			// results.clear();
-		}
+			cont++;
+		}while (Math.random() > 10 || cont<3) ;
 	}
 
 	/**

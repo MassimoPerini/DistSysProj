@@ -177,7 +177,8 @@ public class RecoveryManager {
         List<DataKey> current=this.getAllOrEmptyList();
 
         current.addAll(sources);
-
+        
+        
         List<DataKey> toRemove=current.stream()
                 .filter(currentlyInFileOrNewer->current.stream()
                         .anyMatch(moreRecent->moreRecent.otherHasSameSenderButOlderSequenceNumber(currentlyInFileOrNewer)))

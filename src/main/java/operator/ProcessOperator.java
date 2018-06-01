@@ -32,7 +32,7 @@ public class ProcessOperator {
 
 
         Debug.getCrashSendPosition().add(new Position("127.0.0.1", 11340));
-        Debug.getCrashSendNMessage().add(3);
+        Debug.getCrashSendNMessage().add(1);
 
 
         RuntimeTypeAdapterFactory rtTest = RuntimeTypeAdapterFactory.of(OperatorType.class, "type").registerSubtype(Sum.class)
