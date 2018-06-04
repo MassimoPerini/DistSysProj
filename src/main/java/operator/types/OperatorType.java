@@ -174,6 +174,8 @@ public abstract class OperatorType implements Serializable {
 				logger.debug("adding data....");
 				addToMessageQueue(dataKey);
 			}
+			//i empty the list
+			messagesRecovered = new LinkedList<>();
 		}
 		else
 			logger.debug("recovery file IS empty");
@@ -237,6 +239,7 @@ int cont=0;
 				logger.trace(stringListEntry.getKey());
 				for (DataKey dataKey : stringListEntry.getValue()) {
 					logger.trace("-> " + dataKey.getData());
+
 				}
 			}
 
@@ -256,7 +259,7 @@ int cont=0;
 					DataKey messageData = new DataKey(changedKey, result, new Key(this.source, ++sequenceNumber),
 							senders);
 
-					logger.debug("\" result: \" + changedKey + \" : \" + result");
+					logger.debug("\" result: \" + changedKey + \" : \" + result" + messageData.getData());
 
 					// 1- Appending processed data to -output_handler_recovery-
 					changeLastProcessedWindow(messageData);
@@ -274,9 +277,11 @@ int cont=0;
 					updateLastMessagesReceivedBySender(messageData.getSources().stream()
 							.map(d -> new DataKey(messageData.getOriginalKey(), messageData.getData(), d, new ArrayList<>()))
 							.collect(Collectors.toList()));
-	*/
+					*/
 					updateLastMessagesReceivedBySender(subRes);
 					slideWindow(data);
+					logger.debug("Window slide called" );
+
 					executorService.submit(() -> {
                         Debug.increaseMessageSent(1);
                         sendMessage(messageData);
@@ -319,7 +324,7 @@ int cont=0;
 			changedKeys.clear();
 			// results.clear();
 			cont++;
-		}while (Math.random() > 10 || cont<6) ;
+		}while (Math.random() < 2) ;
 	}
 
 	/**
@@ -373,7 +378,16 @@ int cont=0;
 
 		//this.isResendingUnackedMessageLock = new Object();
 		this.messagesRecovered = lastProcessedWindowRecoveryManager.getAllOrEmptyList();
-
+		List<DataKey> lastMessagesBySender = lastMessageBySenderRecoveryManager.getAllOrEmptyList();
+		//è last message by sender
+		if(!lastMessagesBySender.isEmpty())
+		{
+			int temp = 0;
+			for(DataKey seqNumber:lastMessagesBySender)
+				temp += seqNumber.getAggregator().getSequenceNumber();
+			//non so se necessario...
+			this.sequenceNumber = (int)Math.floor(temp / this.slide)+1;
+		}
 		this.sourceMsgQueue = new ConcurrentHashMap<>();
 		// this.sourceMsgKeys = Collections.newSetFromMap(new
 		// ConcurrentHashMap<String, Boolean>());
@@ -495,6 +509,9 @@ int cont=0;
 	public void resendUnackedMessages()
 	{
 		List<DataKey> notAcked=recoveryManagerForMessagesSentAndNotAcknowledged.getAllOrEmptyList();
+		Logger logger = LogManager.getLogger();
+		ThreadContext.put("logFileName", "operator"+Debug.getUuid());
+		logger.debug("Inside resend Unacked messages");
 		Set<String> differentKeys=notAcked.stream().map(ms->ms.getOriginalKey()).distinct().collect(Collectors.toSet());
 		for(String string:differentKeys)
 		{
