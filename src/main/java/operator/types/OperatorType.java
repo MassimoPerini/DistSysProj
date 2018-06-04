@@ -270,8 +270,12 @@ int cont=0;
 					// 3- we tell the recovery manager the keys of the new
 					// arrived elements
 					
-					updateLastMessagesReceivedBySender(data);
-
+					/*
+					updateLastMessagesReceivedBySender(messageData.getSources().stream()
+							.map(d -> new DataKey(messageData.getOriginalKey(), messageData.getData(), d, new ArrayList<>()))
+							.collect(Collectors.toList()));
+	*/
+					updateLastMessagesReceivedBySender(subRes);
 					slideWindow(data);
 					executorService.submit(() -> {
                         Debug.increaseMessageSent(1);
@@ -315,7 +319,7 @@ int cont=0;
 			changedKeys.clear();
 			// results.clear();
 			cont++;
-		}while (Math.random() > 10 || cont<3) ;
+		}while (Math.random() > 10 || cont<6) ;
 	}
 
 	/**
