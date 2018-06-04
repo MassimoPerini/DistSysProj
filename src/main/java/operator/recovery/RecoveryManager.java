@@ -302,9 +302,16 @@ public class RecoveryManager {
      * @param messageData
      * @return
      */
-	public boolean isDuplicated(DataKey messageData) 
+	/*public boolean isDuplicated(DataKey messageData)
 	{
 		return getByKey(messageData).stream().anyMatch(m->m.getAggregator().getSequenceNumber()>=messageData.getAggregator().getSequenceNumber());
 	}
+    */
+
+
+    public boolean isDuplicated(DataKey messageData)
+    {
+        return getByKey(messageData).stream().anyMatch(m->m.otherHasSameSenderButOlderSequenceNumber(messageData));
+    }
 }
 

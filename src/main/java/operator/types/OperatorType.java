@@ -533,11 +533,11 @@ int cont=0;
 		// this.sourceMsgKeys.add(messageData.getOriginalKey());
 		// this.sourceMsgKeys.put(messageData.getOriginalKey());
 		// this.sourceMsgQueue.add(messageData);
+		Logger logger = LogManager.getLogger();
 
 
 		if (Debug.getCrashRecPosition().contains(this.source) && Debug.getCrashRecNMessage().contains(Debug.getMessageReceived()))
 		{
-			Logger logger = LogManager.getLogger();
 			//ThreadContext.put("logFileName", "operator"+Debug.getUuid());
 			logger.info("Crashing on purpose....");
 			System.exit(-2);
@@ -546,6 +546,7 @@ int cont=0;
 
 		if(lastMessageBySenderRecoveryManager.isDuplicated(messageData) && source.getPort() > 0)
 		{
+			logger.debug("Message is indeed duplicated" + messageData.toString() + messageData.getOriginalKey());
 				//dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
 			dataSenders.get(messageData.getAggregator().getNode()).sendAck(messageData);
 			return;

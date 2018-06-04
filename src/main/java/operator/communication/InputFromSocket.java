@@ -65,7 +65,7 @@ public class InputFromSocket implements OperatorInputQueue{
 				DataKey messageData = (DataKey) this.socketIn.readObject();
 				messageData.setAggregator(positionOfTheOtherSide);
 				operatorType.addToMessageQueue(messageData);
-				logger.debug("Received "+ messageData);
+				logger.debug("Received "+ messageData + "with key" + messageData.getOriginalKey());
 
 
 			} catch (IOException e) {
