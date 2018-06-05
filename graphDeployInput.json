@@ -4,15 +4,14 @@
       "id": 1,
       "data": {
         "jarFile": "",
-        "outJson": "{\"type\":\"Sum\",\"size\":2,\"slide\":2,\"exactPosition\":[{\"ipAddress\":\"127.0.0.1\",\"port\":15555},{\"ipAddress\":\"127.0.0.1\",\"port\":15556}],\"sequenceNumber\":0,\"source\":{\"ipAddress\":\"127.0.0.1\",\"port\":-1},\"messageAddressees\":[[{\"ipAddress\":\"127.0.0.1\",\"port\":11340}],[{\"ipAddress\":\"127.0.0.1\",\"port\":11345}]],\"dataSenders\":{}}",
+        "outJson": "{\"type\":\"Sum\",\"size\":2,\"slide\":2,\"exactPosition\":[{\"ipAddress\":\"127.0.0.1\",\"port\":15555}],\"sequenceNumber\":0,\"source\":{\"ipAddress\":\"127.0.0.1\",\"port\":-1},\"messageAddressees\":[[{\"ipAddress\":\"127.0.0.1\",\"port\":11340}]],\"dataSenders\":{}}",
         "ownPosition": {
           "ipAddress": "127.0.0.1",
           "port": -1
         }
       },
       "neighbours": {
-        "2": 0.0,
-        "3": 0.0
+        "2": 0.0
       }
     },
     "2": {
@@ -23,20 +22,6 @@
         "ownPosition": {
           "ipAddress": "127.0.0.1",
           "port": 11340
-        }
-      },
-      "neighbours": {
-        "4": 0.0
-      }
-    },
-    "3": {
-      "id": 3,
-      "data": {
-        "jarFile": "",
-        "outJson": "{\"type\":\"Sum\",\"size\":3,\"slide\":3,\"exactPosition\":[{\"ipAddress\":\"127.0.0.1\",\"port\":16565}],\"sequenceNumber\":0,\"source\":{\"ipAddress\":\"127.0.0.1\",\"port\":11345},\"messageAddressees\":[[{\"ipAddress\":\"127.0.0.1\",\"port\":11349}]],\"dataSenders\":{}}",
-        "ownPosition": {
-          "ipAddress": "127.0.0.1",
-          "port": 11345
         }
       },
       "neighbours": {

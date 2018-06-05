@@ -66,6 +66,11 @@ public class Key implements Serializable{
 		return sameSource(other) && this.sequenceNumber>other.sequenceNumber;
 	}
 
+	public boolean otherHasSameSenderButOlderOrSameSequenceNumber(Key other)
+	{
+		return sameSource(other) && this.sequenceNumber>=other.sequenceNumber;
+	}
+	
     public Position getNode() {
 		return  node;
     }

@@ -121,7 +121,11 @@ public class DataKey implements Serializable{
     {
         return this.aggregator.otherHasSameSenderButOlderSequenceNumber(currentlyInFile.getAggregator());
     }
-
+    
+    public boolean otherHasSameSenderButOlderOrSameSequenceNumber(DataKey currentlyInFile)
+    {
+        return this.aggregator.otherHasSameSenderButOlderOrSameSequenceNumber(currentlyInFile.getAggregator());
+    }
 
     public boolean hasOlderOrEqualSequenceNumberThanOther(Key receivedAck)
     {

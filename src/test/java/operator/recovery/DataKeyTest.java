@@ -22,6 +22,18 @@ public class DataKeyTest {
     }
 
     @Test
+    public void otherHasSameSenderButOlderOrSameSequenceNumber() {
+        Position position1=new Position("/127.0.0.1",2);
+        Key source1=new Key(position1,2);
+        Position position2=new Position("/127.0.0.1",2);
+        Key source2=new Key(position2,3);
+        DataKey old=new DataKey("1",0.0,source1,new ArrayList<>());
+        DataKey recent=new DataKey("1",0.0,source2,new ArrayList<>());
+        assertTrue(recent.otherHasSameSenderButOlderOrSameSequenceNumber(old));
+        assertFalse(old.otherHasSameSenderButOlderOrSameSequenceNumber(recent));
+    }
+    
+    @Test
     public void differentSources()
     {
         Position position1=new Position("pluto",2);

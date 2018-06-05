@@ -311,7 +311,7 @@ public class RecoveryManager {
 
     public boolean isDuplicated(DataKey messageData)
     {
-        return getByKey(messageData).stream().anyMatch(m->m.otherHasSameSenderButOlderSequenceNumber(messageData));
+        return getByKey(messageData).stream().anyMatch(m->m.otherHasSameSenderButOlderOrSameSequenceNumber(messageData));
     }
 }
 
