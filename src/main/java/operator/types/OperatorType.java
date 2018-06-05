@@ -103,6 +103,12 @@ public abstract class OperatorType implements Serializable {
 	private transient RecoveryManager recoveryManagerForMessagesSentAndNotAcknowledged;
 
 	private transient RecoveryManager lastMessageBySenderRecoveryManager;
+	
+	/**
+	 * This map contains the messages received but not processed yet. 
+	 * Must be checked not to process the same message twice.
+	 */
+	private Map<String, List<DataKey>> currentMsg;
 	/*
 	 * public OperatorType(){ this.messageAddressees = new LinkedList<>();
 	 * this.size = 0; this.slide = 0; }
@@ -161,7 +167,7 @@ public abstract class OperatorType implements Serializable {
 
 		// this condition is a while true loop
 		// mappa contenente i messaggi da processare
-		Map<String, List<DataKey>> currentMsg = new HashMap<>();
+		currentMsg = new HashMap<>();
 
 		Logger logger = LogManager.getLogger();
 
@@ -528,7 +534,7 @@ int cont=0;
 		return current;
 	}
 
-	public void addToMessageQueue(DataKey messageData) {
+	public synchronized void addToMessageQueue(DataKey messageData) {
 		// this.sourceMsgQueue.put(messageData.getOriginalKey(), messageData);
 		// this.sourceMsgKeys.add(messageData.getOriginalKey());
 		// this.sourceMsgKeys.put(messageData.getOriginalKey());
@@ -544,10 +550,10 @@ int cont=0;
 		}
 		Debug.setMessageReceived(Debug.getMessageReceived()+1);
 
-		if(lastMessageBySenderRecoveryManager.isDuplicated(messageData) && source.getPort() > 0)
+		if(isDuplicated(messageData))
 		{
 			logger.debug("Message is indeed duplicated" + messageData.toString() + messageData.getOriginalKey());
-				//dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
+			//dataSenders.get(key.getAggregator().getNode()).sendAck(key.getAggregator());
 			dataSenders.get(messageData.getAggregator().getNode()).sendAck(messageData);
 			return;
 		}
@@ -565,6 +571,20 @@ int cont=0;
 		}
 	}
 
+	
+	private boolean isDuplicated(DataKey messageData)
+	{
+		List<DataKey> window=currentMsg.get(messageData.getOriginalKey());
+		if(window!=null)
+			if(window.stream().anyMatch(p->p.otherHasSameSenderButOlderOrSameSequenceNumber(messageData)))
+				return true;
+		if(lastMessageBySenderRecoveryManager.isDuplicated(messageData))
+		{
+			return true;
+		}
+		return false;
+	}
+	
 	private void sendMessage(DataKey messageData) {
 		Logger logger = LogManager.getLogger();
 		ThreadContext.put("logFileName", "operator"+Debug.getUuid());
