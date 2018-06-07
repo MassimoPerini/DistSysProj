@@ -30,7 +30,7 @@ public class ProcessOperator {
         Debug.setLevel(Debug.LEVEL_VERBOSE);
         logger.debug("Processo lanciato!!! " + args[0]);
 
-
+        //n messages must be bigger than one...
         Debug.getCrashSendPosition().add(new Position("127.0.0.1", 11340));
         Debug.getCrashSendNMessage().add(2);
 

@@ -56,7 +56,8 @@ public class RecoveryManager {
 
 	public void appendData(@NotNull DataKey elem)
 	{
-
+        Logger logger = LogManager.getLogger();
+        logger.debug("Printing " + elem.toString() + "in file " + destinationFile);
 		appendDataInFileList(destinationFile, elem);
 	}
 
@@ -254,12 +255,32 @@ public class RecoveryManager {
                 .forEach(messageInNeedOfAck->messageInNeedOfAck.addSource(ackSenderPosition));
         List<DataKey> toRemove=currentlyInFile.stream().filter(datakey->datakey.getSources().size()==allAcksNeeded.size())
                 .collect(Collectors.toList());*/
+        Logger logger = LogManager.getLogger();
+
+        for(DataKey key:currentlyInFile)
+            logger.debug("Pre filtrando... " + key.toString());
 
         filterAck(originalKey, receivedAck, ackSenderPosition,currentlyInFile);
+
+        for(DataKey key:currentlyInFile)
+            logger.debug("Filtrando... " + key.toString() + "  con ack " + receivedAck.toString());
+
+        allAcksNeeded.forEach(
+                d-> logger.debug(d.toString())
+        );
+
         currentlyInFile.removeAll(returnAckedMsgs(currentlyInFile, allAcksNeeded))
 ;
         store(currentlyInFile);
     }
+
+    /**
+     *
+     * @param originalKey
+     * @param receivedAck
+     * @param ackSenderPosition
+     * @param messagesToFilter adds to all messages of the list, an ack from ackSenderPosition
+     */
     public static void filterAck(String originalKey, Key receivedAck, Position ackSenderPosition,
                                     List<DataKey> messagesToFilter){
         List<DataKey> sameKey  = new LinkedList<>();

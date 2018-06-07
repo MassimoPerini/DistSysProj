@@ -392,7 +392,7 @@ int cont=0;
 			for(DataKey seqNumber:lastMessagesBySender)
 				temp += seqNumber.getAggregator().getSequenceNumber();
 			//non so se necessario...
-			this.sequenceNumber = (int)Math.floor(temp / this.slide)+1;
+			this.sequenceNumber = (int)Math.floor(temp / this.slide) +1;
 		}
 		this.sourceMsgQueue = new ConcurrentHashMap<>();
 		// this.sourceMsgKeys = Collections.newSetFromMap(new
