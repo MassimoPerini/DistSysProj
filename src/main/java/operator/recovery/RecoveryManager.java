@@ -245,7 +245,7 @@ public class RecoveryManager {
      * @param ackSenderPosition
      * @param allAcksNeeded
      */
-    public void reactToAck(String originalKey,Key receivedAck, Position ackSenderPosition, Collection<Position> allAcksNeeded)
+    public synchronized void reactToAck(String originalKey,Key receivedAck, Position ackSenderPosition, Collection<Position> allAcksNeeded)
     {
         List<DataKey> currentlyInFile=getAllOrEmptyList();
         /*currentlyInFile.stream()
