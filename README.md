@@ -1,5 +1,7 @@
 # DistSysProj
-Distribuited Systems Project (2017-2018)
+Distribuited Systems Project (2017-2018) by Alessandro Artoni, Fulvio Bambusi and Massimo Perini
+
+http://corsi.dei.polimi.it/distsys/projects.html
 
 
 Implement a stream processing system for in-memory processing of streaming elements. The stream processing system exposes primitives to build a directed acyclic graph of operators. Each operator processes incoming elements and forwards the results to the downstream operators using a "pipeline" approach.
